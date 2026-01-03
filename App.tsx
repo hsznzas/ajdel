@@ -43,6 +43,14 @@ const App: React.FC = () => {
     }
   }, [showCelebration, pendingUrl]);
 
+  // Preload all celebration GIFs on mount for instant display
+  useEffect(() => {
+    CELEBRATION_GIFS.forEach((gifSrc) => {
+      const img = new Image();
+      img.src = gifSrc;
+    });
+  }, []);
+
   const toggleLang = () => {
     setLang(prev => prev === 'ar' ? 'en' : 'ar');
   };
