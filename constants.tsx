@@ -3,16 +3,17 @@ import { LinkItem, MenuItem } from './types';
 
 export interface ExtendedLinkItem extends LinkItem {
   shimmerClass: string;
+  icon: string;
 }
 
 export const LINKS: ExtendedLinkItem[] = [
-  { id: 'hunger', label: { ar: 'هنقرستيشن', en: 'HungerStation' }, url: 'https://hungerstation.com/sa-en/restaurant/riyadh/malqa/156422', shimmerClass: 'btn-hunger' },
-  { id: 'jahez', label: { ar: 'جاهز', en: 'Jahez' }, url: 'https://jahez.link/nDKd7jk0QUb', shimmerClass: 'btn-jahez' },
-  { id: 'chefz', label: { ar: 'ذا شيفز', en: 'The Chefz' }, url: 'https://url.mykeeta.com/WCjnfSYz', shimmerClass: 'btn-chefz' },
-  { id: 'ninja', label: { ar: 'نينجا', en: 'Ninja' }, url: 'https://ananinja.com/sa/ar/restaurants/ajdel-41829', shimmerClass: 'btn-ninja' },
-  { id: 'salla', label: { ar: 'سلة (متجر إلكتروني)', en: 'Salla (E-commerce)' }, url: 'http://salla.sa/ajdels', shimmerClass: 'btn-salla' },
-  { id: 'menu', label: { ar: 'قائمة الطعام', en: 'Digital Menu' }, url: '#menu', isInternal: true, shimmerClass: 'btn-standard' },
-  { id: 'location', label: { ar: 'الموقع', en: 'Location' }, url: 'https://maps.app.goo.gl/8E4gu42aSGkqY8X2A', shimmerClass: 'btn-standard' },
+  { id: 'hunger', label: { ar: 'هنقرستيشن', en: 'HungerStation' }, url: 'https://hungerstation.com/sa-en/restaurant/riyadh/malqa/156422', shimmerClass: 'btn-hunger', icon: '/images/LINK_HungerStation.png' },
+  { id: 'jahez', label: { ar: 'جاهز', en: 'Jahez' }, url: 'https://jahez.link/nDKd7jk0QUb', shimmerClass: 'btn-jahez', icon: '/images/LINK_Jahez.png' },
+  { id: 'chefz', label: { ar: 'ذا شيفز', en: 'The Chefz' }, url: 'https://url.mykeeta.com/WCjnfSYz', shimmerClass: 'btn-chefz', icon: '/images/LINK_Keeta.png' },
+  { id: 'ninja', label: { ar: 'نينجا', en: 'Ninja' }, url: 'https://ananinja.com/sa/ar/restaurants/ajdel-41829', shimmerClass: 'btn-ninja', icon: '/images/LINK_Ninja.png' },
+  { id: 'salla', label: { ar: 'سلة (متجر إلكتروني)', en: 'Salla (E-commerce)' }, url: 'http://salla.sa/ajdels', shimmerClass: 'btn-salla', icon: '/images/LINK_Salla Logo.png' },
+  { id: 'menu', label: { ar: 'قائمة الطعام', en: 'Digital Menu' }, url: '#menu', isInternal: true, shimmerClass: 'btn-standard', icon: '/images/Brand Logo.png' },
+  { id: 'location', label: { ar: 'الموقع', en: 'Location' }, url: 'https://maps.app.goo.gl/8E4gu42aSGkqY8X2A', shimmerClass: 'btn-standard', icon: '/images/LINK_googlemaps.png' },
 ];
 
 export const MENU_DATA: MenuItem[] = [

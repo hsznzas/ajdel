@@ -3,14 +3,45 @@ import { Language, View } from './types';
 import Background from './components/Background';
 import { LINKS, MENU_DATA, UI_STRINGS } from './constants';
 
+// Array of celebration GIFs to randomly choose from
+const CELEBRATION_GIFS = [
+  '/images/arab-arabic.gif',
+  '/images/arab-dance.gif',
+  '/images/arab-dancing-muslim-dancing.gif',
+  '/images/arab-habibi.gif',
+  '/images/arab-party-arab-men.gif',
+  '/images/bugcat-tutu.gif',
+  '/images/cheers-new-york.gif',
+  '/images/dance-saudi.gif',
+  '/images/excited-ah.gif',
+  '/images/excited-im-so-excited.gif',
+  '/images/happy-japanese-anime.gif',
+  '/images/happy.gif',
+];
+
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('ar');
   const [view, setView] = useState<View>('home');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const [currentGif, setCurrentGif] = useState<string>('');
 
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);
+
+  // Handle redirect after celebration GIF
+  useEffect(() => {
+    if (showCelebration && pendingUrl) {
+      const timer = setTimeout(() => {
+        window.open(pendingUrl, '_blank', 'noopener,noreferrer');
+        setShowCelebration(false);
+        setPendingUrl(null);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showCelebration, pendingUrl]);
 
   const toggleLang = () => {
     setLang(prev => prev === 'ar' ? 'en' : 'ar');
@@ -21,8 +52,19 @@ const App: React.FC = () => {
       setView('menu');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      // Randomly select a celebration GIF
+      const randomGif = CELEBRATION_GIFS[Math.floor(Math.random() * CELEBRATION_GIFS.length)];
+      setCurrentGif(randomGif);
+      // Show celebration GIF, then redirect after 2 seconds
+      setPendingUrl(url);
+      setShowCelebration(true);
     }
+  };
+
+  // Cancel redirect when clicking on background
+  const handleCancelRedirect = () => {
+    setShowCelebration(false);
+    setPendingUrl(null);
   };
 
   return (
@@ -41,11 +83,14 @@ const App: React.FC = () => {
 
       {/* Main Container */}
       <main className="w-full max-w-lg flex-1 flex flex-col items-center">
-        {/* Brand Logo Placeholder */}
+        {/* Brand Logo */}
         <div className="mb-14 text-center">
-          <div className="w-36 h-36 bg-white/30 backdrop-blur-2xl border border-white/40 rounded-full flex items-center justify-center shadow-2xl mb-6 mx-auto relative group">
-            <div className="absolute inset-0 rounded-full bg-white/10 group-hover:bg-white/20 transition-all duration-700 animate-pulse"></div>
-            <span className="text-[#012842] text-5xl font-bold tracking-[0.2em] italic relative z-10">A</span>
+          <div className="w-36 h-36 bg-white/30 backdrop-blur-2xl border border-white/40 rounded-full flex items-center justify-center shadow-2xl mb-6 mx-auto relative group overflow-hidden">
+            <img 
+              src="/images/BrandLogoGif.gif" 
+              alt="AJDEL Logo" 
+              className="w-full h-full object-cover relative z-10"
+            />
           </div>
           <h1 className="text-[#012842] text-3xl font-bold opacity-90 tracking-tight">
             {lang === 'ar' ? 'أجدل' : 'AJDEL'}
@@ -56,25 +101,68 @@ const App: React.FC = () => {
         </div>
 
         {view === 'home' ? (
-          <div className="w-full space-y-6 animate-fadeIn">
-            {LINKS.map(link => (
-              <button
-                key={link.id}
-                onClick={() => handleLinkClick(link.isInternal || false, link.url)}
-                className={`w-full shimmer-btn ${link.shimmerClass} bg-white/25 backdrop-blur-xl border border-white/40 hover:bg-white/40 text-[#012842] py-5 px-8 rounded-[2rem] text-xl font-bold shadow-lg hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-500 group flex items-center justify-between`}
+          <div className="w-full relative">
+            {/* Celebration GIF Overlay - appears on top of buttons */}
+            {showCelebration && (
+              <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fadeIn p-4"
+                onClick={handleCancelRedirect}
               >
-                <div className="w-6 h-6 invisible"></div> {/* Spacer for optical centering */}
-                <span className="relative z-10">{link.label[lang]}</span>
-                <svg 
-                  className={`w-6 h-6 opacity-30 group-hover:opacity-100 transition-all duration-500 group-hover:translate-x-1.5 ${lang === 'ar' ? 'rotate-180 group-hover:-translate-x-1.5' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+                <div 
+                  className="bg-white/40 backdrop-blur-2xl border border-white/50 rounded-[2rem] sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl flex flex-col items-center gap-4 sm:gap-6 max-w-[90vw] sm:max-w-none"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            ))}
+                  <img 
+                    src={currentGif} 
+                    alt="Celebration!" 
+                    className="w-48 h-48 sm:w-64 sm:h-64 object-contain rounded-xl sm:rounded-2xl"
+                  />
+                  {/* Loading Progress Bar */}
+                  <div className="w-full h-1.5 sm:h-2 bg-white/30 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-[#012842] rounded-full"
+                      style={{
+                        animation: 'loadingProgress 2s linear forwards'
+                      }}
+                    />
+                  </div>
+                  {/* Cancel hint for mobile */}
+                  <p className="text-[#012842]/50 text-xs sm:text-sm">
+                    {lang === 'ar' ? 'اضغط في الخارج للإلغاء' : 'Tap outside to cancel'}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Buttons - stay in place */}
+            <div className="space-y-4 sm:space-y-6 animate-fadeIn">
+              {LINKS.map(link => (
+                <button
+                  key={link.id}
+                  onClick={() => handleLinkClick(link.isInternal || false, link.url)}
+                  disabled={showCelebration}
+                  className={`w-full shimmer-btn ${link.shimmerClass} bg-white/25 backdrop-blur-xl border border-white/40 hover:bg-white/40 text-[#012842] py-3 sm:py-4 px-4 sm:px-6 rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4 disabled:pointer-events-none`}
+                >
+                  {/* App Icon - circular like mobile app icons */}
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-white/50">
+                    <img 
+                      src={link.icon} 
+                      alt={link.label[lang]} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="relative z-10 flex-1 text-center">{link.label[lang]}</span>
+                  <svg 
+                    className={`w-5 h-5 sm:w-6 sm:h-6 opacity-30 group-hover:opacity-100 transition-all duration-500 group-hover:translate-x-1.5 flex-shrink-0 ${lang === 'ar' ? 'rotate-180 group-hover:-translate-x-1.5' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="w-full animate-slideUp">
