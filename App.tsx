@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Language, View } from './types';
 import Background from './components/Background';
 import { LINKS, MENU_DATA, UI_STRINGS } from './constants';
+import { 
+  trackHomepageView, 
+  trackMenuView, 
+  trackDeliveryLinkClick, 
+  trackLocationClick 
+} from './utils/tiktokPixel';
 
 // Array of celebration GIFs to randomly choose from
 const CELEBRATION_GIFS = [
@@ -31,6 +37,15 @@ const App: React.FC = () => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);
 
+  // Track page views for TikTok Pixel
+  useEffect(() => {
+    if (view === 'home') {
+      trackHomepageView();
+    } else if (view === 'menu') {
+      trackMenuView();
+    }
+  }, [view]);
+
   // Handle redirect after celebration GIF
   useEffect(() => {
     if (showCelebration && pendingUrl) {
@@ -55,11 +70,19 @@ const App: React.FC = () => {
     setLang(prev => prev === 'ar' ? 'en' : 'ar');
   };
 
-  const handleLinkClick = (isInternal: boolean, url: string) => {
+  const handleLinkClick = (isInternal: boolean, url: string, linkId?: string, linkName?: string) => {
     if (isInternal) {
       setView('menu');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
+      // Track TikTok Pixel event for external link clicks
+      if (linkId === 'location') {
+        trackLocationClick();
+      } else if (linkId && linkName) {
+        // Track delivery platform clicks as InitiateCheckout (high purchase intent)
+        trackDeliveryLinkClick(linkId, linkName);
+      }
+      
       // Randomly select a celebration GIF
       const randomGif = CELEBRATION_GIFS[Math.floor(Math.random() * CELEBRATION_GIFS.length)];
       setCurrentGif(randomGif);
@@ -147,7 +170,7 @@ const App: React.FC = () => {
               {LINKS.map(link => (
                 <button
                   key={link.id}
-                  onClick={() => handleLinkClick(link.isInternal || false, link.url)}
+                  onClick={() => handleLinkClick(link.isInternal || false, link.url, link.id, link.label.en)}
                   disabled={showCelebration}
                   className={`w-full shimmer-btn ${link.shimmerClass} bg-white/25 backdrop-blur-xl border border-white/40 hover:bg-white/40 text-[#012842] py-3 sm:py-4 px-4 sm:px-6 rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4 disabled:pointer-events-none`}
                 >
@@ -230,9 +253,9 @@ const App: React.FC = () => {
         <div className="text-center text-[#012842] text-sm opacity-40 font-medium tracking-wide">
           <p>Malqa, Riyadh, Saudi Arabia</p>
           <div className="flex items-center justify-center gap-5 mt-3">
-            <span>info@ajdel.sa</span>
+            <span>Admin@ajdel.sa</span>
             <div className="w-1.5 h-1.5 bg-[#012842] rounded-full opacity-20"></div>
-            <span>+966 50 000 0000</span>
+            <span>00966533484918</span>
           </div>
         </div>
 
