@@ -19,18 +19,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
       :root {
         --primary-navy: #012842;
         --shimmer-duration: 3s; /* Fast continuous shimmer */
       }
       body {
-        font-family: 'Cairo', 'Playfair Display', serif;
+        font-family: 'Amiri', 'Playfair Display', serif;
         overflow-x: hidden;
-        background-color: #F2BF97;
+        background-color: #012842;
       }
-      .font-ar { font-family: 'Cairo', sans-serif; }
+      .font-ar { font-family: 'Amiri', serif; }
       .font-en { font-family: 'Playfair Display', serif; }
       
       /* Background Star System */
@@ -40,7 +40,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: -1;
+        z-index: -5;
+        pointer-events: none;
       }
       #stars, #stars2, #stars3, #stars4 {
         position: absolute;
@@ -48,8 +49,8 @@
         left: 0;
         background: transparent;
       }
-      #stars { width: 1px; height: 1px; box-shadow: 117px 1613px #012842, 1488px 635px #012842, 944px 914px #012842, 647px 277px #012842, 1792px 1205px #012842, 656px 1517px #012842, 820px 1839px #012842, 1153px 1400px #012842, 870px 13px #012842; animation: animStar 150s linear infinite; }
-      #stars2 { width: 2px; height: 2px; box-shadow: 1117px 1306px #012842, 1078px 1783px #012842, 1179px 1085px #012842, 1145px 920px #012842, 422px 1233px #012842; animation: animStar 100s linear infinite; }
+      #stars { width: 1px; height: 1px; box-shadow: 117px 1613px #F2BF97, 1488px 635px #ECDAD2, 944px 914px #F2BF97, 647px 277px #ECDAD2, 1792px 1205px #F2BF97, 656px 1517px #ECDAD2, 820px 1839px #F2BF97, 1153px 1400px #ECDAD2, 870px 13px #F2BF97, 234px 892px #ECDAD2, 1567px 423px #F2BF97, 789px 1234px #ECDAD2, 1345px 567px #F2BF97, 456px 1789px #ECDAD2, 1678px 234px #F2BF97, 345px 1456px #ECDAD2, 1234px 789px #F2BF97, 567px 1567px #ECDAD2, 1890px 345px #F2BF97, 123px 1678px #ECDAD2, 1456px 123px #F2BF97, 678px 1345px #ECDAD2, 1567px 890px #F2BF97, 890px 456px #ECDAD2, 1123px 1890px #F2BF97, 234px 567px #ECDAD2, 1789px 1234px #F2BF97, 456px 345px #ECDAD2, 1345px 1678px #F2BF97, 678px 234px #ECDAD2, 1678px 1123px #F2BF97, 345px 890px #ECDAD2, 1234px 1567px #F2BF97, 789px 678px #ECDAD2, 1890px 1456px #F2BF97, 123px 1234px #ECDAD2, 1456px 789px #F2BF97, 567px 123px #ECDAD2, 1567px 1345px #F2BF97, 890px 1890px #ECDAD2, 1123px 456px #F2BF97, 234px 1789px #ECDAD2, 1789px 678px #F2BF97, 456px 1123px #ECDAD2, 1345px 234px #F2BF97, 678px 1678px #ECDAD2, 1678px 567px #F2BF97, 345px 1345px #ECDAD2, 1234px 345px #F2BF97, 789px 1890px #ECDAD2, 1890px 890px #F2BF97, 123px 456px #ECDAD2, 1456px 1234px #F2BF97, 567px 789px #ECDAD2, 1567px 1678px #F2BF97, 890px 123px #ECDAD2, 1123px 1567px #F2BF97, 234px 1345px #ECDAD2, 1789px 1890px #F2BF97, 456px 678px #ECDAD2, 1345px 1123px #F2BF97, 678px 890px #ECDAD2, 1678px 1789px #F2BF97, 345px 234px #ECDAD2, 1234px 1456px #F2BF97, 789px 345px #ECDAD2, 1890px 567px #F2BF97, 123px 1123px #ECDAD2, 1456px 456px #F2BF97, 567px 1678px #ECDAD2, 1567px 234px #F2BF97, 890px 1234px #ECDAD2, 1123px 678px #F2BF97, 234px 1890px #ECDAD2, 1789px 345px #F2BF97, 456px 1567px #ECDAD2, 1345px 890px #F2BF97, 678px 1456px #ECDAD2, 1678px 123px #F2BF97, 345px 1789px #ECDAD2, 1234px 567px #F2BF97, 789px 1345px #ECDAD2, 1890px 1123px #F2BF97, 123px 678px #ECDAD2, 1456px 1890px #F2BF97, 567px 345px #ECDAD2, 1567px 1234px #F2BF97, 890px 789px #ECDAD2, 1123px 234px #F2BF97; animation: animStar 150s linear infinite; }
+      #stars2 { width: 2px; height: 2px; box-shadow: 1117px 1306px #ECDAD2, 1078px 1783px #F2BF97, 1179px 1085px #ECDAD2, 1145px 920px #F2BF97, 422px 1233px #ECDAD2, 534px 1567px #F2BF97, 1423px 234px #ECDAD2, 267px 1890px #F2BF97, 1678px 567px #ECDAD2, 890px 1123px #F2BF97, 1234px 456px #ECDAD2, 456px 1345px #F2BF97, 1567px 789px #ECDAD2, 678px 234px #F2BF97, 1890px 1678px #ECDAD2, 123px 890px #F2BF97, 1345px 1234px #ECDAD2, 789px 567px #F2BF97, 1456px 1890px #ECDAD2, 345px 678px #F2BF97, 1678px 345px #ECDAD2, 567px 1456px #F2BF97, 1123px 123px #ECDAD2, 234px 1789px #F2BF97, 1789px 890px #ECDAD2, 890px 1567px #F2BF97, 1234px 234px #ECDAD2, 456px 678px #F2BF97, 1567px 1345px #ECDAD2, 678px 1123px #F2BF97, 1890px 456px #ECDAD2, 123px 1234px #F2BF97, 1345px 789px #ECDAD2, 789px 1890px #F2BF97, 1456px 345px #ECDAD2, 345px 1678px #F2BF97, 1678px 1567px #ECDAD2, 567px 123px #F2BF97, 1123px 1456px #ECDAD2, 234px 567px #F2BF97, 1789px 1234px #ECDAD2, 890px 890px #F2BF97, 1234px 1678px #ECDAD2, 456px 234px #F2BF97, 1567px 456px #ECDAD2, 678px 1789px #F2BF97, 1890px 1123px #ECDAD2, 123px 345px #F2BF97, 1345px 678px #ECDAD2, 789px 1345px #F2BF97; animation: animStar 100s linear infinite; }
       #stars:after, #stars2:after, #stars3:after, #stars4:after { content: " "; position: absolute; top: 2000px; width: inherit; height: inherit; background: transparent; box-shadow: inherit; }
 
       @keyframes animStar { from { transform: translateY(0px); } to { transform: translateY(-2000px); } }
@@ -57,6 +58,14 @@
       /* Luxury Shimmer Engine */
       .shimmer-btn {
         position: relative;
+        /* 1. Force a high Z-Index to physically place buttons above the stars */
+        z-index: 50;
+        /* 2. Enable the Glass Blur */
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        /* 3. CRITICAL: Semi-transparent background for blur to render on */
+        background-color: rgba(1, 40, 66, 0.3);
+        /* 4. Keep existing layout properties */
         overflow: hidden;
         transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
       }

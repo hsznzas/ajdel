@@ -123,7 +123,7 @@ const App: React.FC = () => {
               className="w-full h-full object-cover relative z-10"
             />
           </div>
-          <h1 className="text-[#012842] text-3xl font-bold opacity-90 tracking-tight">
+          <h1 className="text-[#F2BF97] text-3xl font-bold opacity-90 tracking-tight">
             {lang === 'ar' ? 'أجدل' : 'AJDEL'}
           </h1>
           <p className="text-[#012842] text-sm opacity-60 mt-2 uppercase tracking-[0.3em]">
@@ -172,7 +172,7 @@ const App: React.FC = () => {
                   key={link.id}
                   onClick={() => handleLinkClick(link.isInternal || false, link.url, link.id, link.label.en)}
                   disabled={showCelebration}
-                  className={`w-full shimmer-btn ${link.shimmerClass} bg-white/25 backdrop-blur-xl border border-white/40 hover:bg-white/40 text-[#012842] py-3 sm:py-4 px-4 sm:px-6 rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4 disabled:pointer-events-none`}
+                  className={`w-full relative shimmer-btn ${link.shimmerClass} border border-white/40 hover:bg-white/20 text-[#F2BF97] py-3 sm:py-4 px-4 sm:px-6 rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4 disabled:pointer-events-none`}
                 >
                   {/* App Icon - circular like mobile app icons */}
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-white/50">
