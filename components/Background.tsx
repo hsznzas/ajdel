@@ -3,10 +3,10 @@ import React from 'react';
 const Background: React.FC = () => {
   return (
     <>
-      {/* Background - lowest layer */}
-      <div className="fixed inset-0 -z-10 overflow-hidden bg-[#012842]" />
+      {/* Background - gradient layer */}
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-[#023550] via-[#012842] to-[#011e35]" />
       
-      {/* Particles - middle layer, behind buttons but in front of background */}
+      {/* Stars - behind everything */}
       <div className="bg-animation">
         <div id="stars"></div>
         <div id="stars2"></div>

@@ -5,7 +5,6 @@ export interface LinkItem {
   id: string;
   label: { ar: string; en: string };
   url: string;
-  deepLink?: string;
   icon?: string;
   isInternal?: boolean;
 }
