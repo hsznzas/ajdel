@@ -19,18 +19,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
+      /* Custom Arabic Font */
+      @font-face {
+        font-family: 'GoldenLotus';
+        src: url('/fonts/GoldenLotus.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+      
       :root {
         --primary-navy: #012842;
         --shimmer-duration: 3s; /* Fast continuous shimmer */
       }
       body {
-        font-family: 'Amiri', 'Playfair Display', serif;
+        font-family: 'GoldenLotus', 'Playfair Display', serif;
         overflow-x: hidden;
         background-color: #012842;
       }
-      .font-ar { font-family: 'Amiri', serif; }
+      .font-ar { font-family: 'GoldenLotus', serif; }
       .font-en { font-family: 'Playfair Display', serif; }
       
       /* Background Star System */
