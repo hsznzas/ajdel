@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('ar');
   const [view, setView] = useState<View>('home');
   const [showCelebration, setShowCelebration] = useState(false);
-  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const [pendingLinkId, setPendingLinkId] = useState<string | null>(null);
   const [currentGif, setCurrentGif] = useState<string>('');
 
   useEffect(() => {
@@ -46,17 +46,31 @@ const App: React.FC = () => {
     }
   }, [view]);
 
-  // Handle redirect after celebration GIF
+  // Handle redirect after celebration GIF - deep link priority for mobile
   useEffect(() => {
-    if (showCelebration && pendingUrl) {
+    if (showCelebration && pendingLinkId) {
       const timer = setTimeout(() => {
-        window.location.href = pendingUrl;
+        const link = LINKS.find(l => l.id === pendingLinkId);
+        if (!link) return;
+
+        // Priority: Try deep link first (for mobile apps)
+        if (link.deepLink) {
+          window.location.href = link.deepLink;
+          // Fallback to web URL after 1.5s if app doesn't open
+          setTimeout(() => {
+            window.location.href = link.url;
+          }, 1500);
+        } else {
+          // No deep link, use web URL
+          window.location.href = link.url;
+        }
+
         setShowCelebration(false);
-        setPendingUrl(null);
+        setPendingLinkId(null);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [showCelebration, pendingUrl]);
+  }, [showCelebration, pendingLinkId]);
 
   // Preload all celebration GIFs on mount for instant display
   useEffect(() => {
@@ -70,7 +84,7 @@ const App: React.FC = () => {
     setLang(prev => prev === 'ar' ? 'en' : 'ar');
   };
 
-  const handleLinkClick = (isInternal: boolean, url: string, linkId?: string, linkName?: string) => {
+  const handleLinkClick = (isInternal: boolean, linkId: string, linkName?: string) => {
     if (isInternal) {
       setView('menu');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -87,7 +101,7 @@ const App: React.FC = () => {
       const randomGif = CELEBRATION_GIFS[Math.floor(Math.random() * CELEBRATION_GIFS.length)];
       setCurrentGif(randomGif);
       // Show celebration GIF, then redirect after 2 seconds
-      setPendingUrl(url);
+      setPendingLinkId(linkId);
       setShowCelebration(true);
     }
   };
@@ -95,7 +109,7 @@ const App: React.FC = () => {
   // Cancel redirect when clicking on background
   const handleCancelRedirect = () => {
     setShowCelebration(false);
-    setPendingUrl(null);
+    setPendingLinkId(null);
   };
 
   return (
@@ -170,7 +184,7 @@ const App: React.FC = () => {
               {LINKS.map(link => (
                 <button
                   key={link.id}
-                  onClick={() => handleLinkClick(link.isInternal || false, link.url, link.id, link.label.en)}
+                  onClick={() => handleLinkClick(link.isInternal || false, link.id, link.label.en)}
                   disabled={showCelebration}
                   className={`w-full relative shimmer-btn ${link.shimmerClass} border border-white/40 hover:bg-white/20 text-[#F2BF97] py-3 sm:py-4 px-4 sm:px-6 rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4 disabled:pointer-events-none`}
                 >
