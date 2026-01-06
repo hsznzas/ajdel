@@ -50,7 +50,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (showCelebration && pendingUrl) {
       const timer = setTimeout(() => {
-        window.open(pendingUrl, '_blank', 'noopener,noreferrer');
+        window.location.href = pendingUrl;
         setShowCelebration(false);
         setPendingUrl(null);
       }, 2000);
