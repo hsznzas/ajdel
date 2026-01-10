@@ -122,12 +122,8 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       whileTap={status.isOpen ? { scale: 0.98 } : {}}
       onClick={handleClick}
       disabled={!status.isOpen}
-      style={{
-        left: '50%',
-        transform: 'translateX(-50%)',
-      }}
       className={`
-        fixed bottom-6 z-50
+        fixed bottom-6 left-0 right-0 mx-auto w-fit z-50
         px-8 py-4 rounded-full
         flex flex-col items-center gap-1
         shadow-2xl
