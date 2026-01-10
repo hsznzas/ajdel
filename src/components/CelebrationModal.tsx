@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { FirestoreMenuItem } from '../supabase';
+import { convertToDirectImageUrl, type FirestoreMenuItem } from '../supabase';
 
 // GIFs for celebration
 const CELEBRATION_GIFS = [
@@ -47,7 +47,7 @@ const CelebrationModal: React.FC<CelebrationModalProps> = ({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-gradient-to-b from-[#023550] to-[#012842] border border-white/20 rounded-3xl shadow-2xl"
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-gradient-to-b from-[#0f3545] to-[#0c2d3d] border border-white/20 rounded-3xl shadow-2xl"
           >
             {/* Celebration GIF Header */}
             <div className="relative flex justify-center pt-6 pb-2">
@@ -83,9 +83,10 @@ const CelebrationModal: React.FC<CelebrationModalProps> = ({
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-white/5 shadow-xl">
                 {item.imageUrl ? (
                   <img 
-                    src={item.imageUrl} 
+                    src={convertToDirectImageUrl(item.imageUrl)} 
                     alt={lang === 'ar' ? item.nameAr : item.nameEn}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-[#F2BF97]/30 text-6xl">

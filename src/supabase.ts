@@ -60,6 +60,52 @@ export interface FirestoreMenuItem {
 }
 
 // ============================================
+// URL HELPERS
+// ============================================
+
+/**
+ * Convert Google Drive sharing URLs to direct image URLs
+ * Supports various Google Drive URL formats
+ */
+export function convertToDirectImageUrl(url: string): string {
+  if (!url) return url;
+  
+  // Already a direct URL or not a Google Drive URL
+  if (!url.includes('drive.google.com') && !url.includes('docs.google.com')) {
+    return url;
+  }
+  
+  // Extract file ID from various Google Drive URL formats
+  let fileId: string | null = null;
+  
+  // Format: https://drive.google.com/file/d/FILE_ID/view
+  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch) {
+    fileId = fileMatch[1];
+  }
+  
+  // Format: https://drive.google.com/open?id=FILE_ID
+  const openMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (!fileId && openMatch) {
+    fileId = openMatch[1];
+  }
+  
+  // Format: https://docs.google.com/uc?id=FILE_ID
+  const ucMatch = url.match(/\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+  if (!fileId && ucMatch) {
+    fileId = ucMatch[1];
+  }
+  
+  if (fileId) {
+    // Return direct download URL
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  }
+  
+  // Return original URL if we couldn't parse it
+  return url;
+}
+
+// ============================================
 // CONVERTERS
 // ============================================
 

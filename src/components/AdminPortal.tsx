@@ -7,6 +7,7 @@ import {
   deleteMenuItem,
   uploadMenuImage,
   deleteMenuImage,
+  convertToDirectImageUrl,
   type FirestoreMenuItem 
 } from '../supabase';
 import type { AggregatorId, MenuCategory } from '../../types';
@@ -264,9 +265,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                       <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#F2BF97]/20 flex-shrink-0">
                         {item.imageUrl ? (
                           <img 
-                            src={item.imageUrl} 
+                            src={convertToDirectImageUrl(item.imageUrl)} 
                             alt={item.nameEn} 
                             className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
@@ -398,7 +400,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#F2BF97]/20">
                                   {item.imageUrl ? (
-                                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                                    <img 
+                                      src={convertToDirectImageUrl(item.imageUrl)} 
+                                      alt="" 
+                                      className="w-full h-full object-cover"
+                                      referrerPolicy="no-referrer"
+                                    />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-[#F2BF97] text-xs font-bold">
                                       {item.nameEn.slice(0, 3)}
@@ -480,7 +487,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
               <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#F2BF97]/20 flex-shrink-0">
                   {itemToDelete.imageUrl ? (
-                    <img src={itemToDelete.imageUrl} alt="" className="w-full h-full object-cover" />
+                    <img 
+                      src={convertToDirectImageUrl(itemToDelete.imageUrl)} 
+                      alt="" 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[#F2BF97] text-xs font-bold">
                       {itemToDelete.nameEn.slice(0, 3)}
@@ -618,9 +630,10 @@ const ItemEditor: React.FC<ItemEditorProps> = ({
             {item.imageUrl && !imageError ? (
               <>
                 <img 
-                  src={item.imageUrl} 
+                  src={convertToDirectImageUrl(item.imageUrl)} 
                   alt={item.nameEn} 
                   className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
                   onError={() => setImageError(true)}
                 />
                 <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">

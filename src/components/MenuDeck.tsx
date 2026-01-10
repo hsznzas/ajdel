@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getMenuItems, incrementViewCount, type FirestoreMenuItem } from '../supabase';
+import { getMenuItems, incrementViewCount, convertToDirectImageUrl, type FirestoreMenuItem } from '../supabase';
 import { ttqViewContent } from '../../utils/tiktokPixel';
 
 // Aggregator data
@@ -23,6 +23,9 @@ const ImageWithFallback: React.FC<{
 }> = ({ src, alt, name, large }) => {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  
+  // Convert Google Drive URLs to direct image URLs
+  const directUrl = convertToDirectImageUrl(src);
 
   // Reset error state when src changes
   useEffect(() => {
@@ -30,7 +33,7 @@ const ImageWithFallback: React.FC<{
     setLoaded(false);
   }, [src]);
 
-  if (!src || error) {
+  if (!directUrl || error) {
     return (
       <div className={`w-full h-full bg-[#F2BF97]/20 flex items-center justify-center ${large ? 'min-h-[200px]' : ''}`}>
         <span className={`text-[#F2BF97] font-bold text-center px-2 ${large ? 'text-lg' : 'text-xs'}`}>
@@ -48,11 +51,13 @@ const ImageWithFallback: React.FC<{
         </div>
       )}
       <img 
-        src={src} 
+        src={directUrl} 
         alt={alt}
         className={`w-full h-full object-cover transition-opacity ${loaded ? 'opacity-100' : 'opacity-0'}`}
         onError={() => setError(true)}
         onLoad={() => setLoaded(true)}
+        referrerPolicy="no-referrer"
+        crossOrigin="anonymous"
       />
     </>
   );
