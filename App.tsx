@@ -267,17 +267,17 @@ const App: React.FC = () => {
                     onClick={() => handleLinkClick(link.isInternal || false, link.id, link.label.en)}
                     disabled={disabled}
                     className={`
-                      w-full relative border py-3 sm:py-4 px-4 sm:px-6 
-                      rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg 
+                      w-full relative py-3 sm:py-4 px-4 sm:px-6 
+                      rounded-[5px] text-base sm:text-xl font-bold shadow-lg 
                       transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4
                       ${disabled && isDeliveryApp
-                        ? 'bg-gray-500/20 border-gray-500/30 text-gray-400 cursor-not-allowed opacity-50'
-                        : `shimmer-btn ${link.shimmerClass} border-white/40 hover:bg-white/20 text-[#F2BF97] hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98]`
+                        ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed opacity-50'
+                        : 'shimmer-gold bg-[#F2BF97] text-[#0c2d3d] hover:-translate-y-1 active:translate-y-0.5 active:scale-[0.98]'
                       }
                     `}
                   >
                     {/* App Icon */}
-                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-md flex-shrink-0 ${disabled && isDeliveryApp ? 'grayscale opacity-50' : 'bg-white/50'}`}>
+                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-[4px] overflow-hidden shadow-md flex-shrink-0 ${disabled && isDeliveryApp ? 'grayscale opacity-50' : 'bg-white'}`}>
                       <img 
                         src={link.icon} 
                         alt={link.label[lang]} 
@@ -289,7 +289,7 @@ const App: React.FC = () => {
                       className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 transition-all duration-500 ${
                         disabled && isDeliveryApp 
                           ? 'opacity-20' 
-                          : 'opacity-30 group-hover:opacity-100 group-hover:translate-x-1.5'
+                          : 'opacity-50 group-hover:opacity-100 group-hover:translate-x-1.5'
                       } ${lang === 'ar' ? 'rotate-180 group-hover:-translate-x-1.5' : ''}`} 
                       fill="none" 
                       stroke="currentColor" 
@@ -300,8 +300,8 @@ const App: React.FC = () => {
                     
                     {/* Closed Overlay for delivery apps */}
                     {disabled && isDeliveryApp && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-2xl sm:rounded-[2rem]">
-                        <span className="text-gray-300 text-sm font-medium">
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-[5px]">
+                        <span className="text-gray-200 text-sm font-medium">
                           {lang === 'ar' ? 'مغلق الآن' : 'Closed Now'}
                         </span>
                       </div>
@@ -369,36 +369,48 @@ const App: React.FC = () => {
       />
 
       {/* Footer */}
-      <footer className="w-full max-w-lg py-16 flex flex-col items-center gap-10 mt-auto">
-        <div className="flex gap-12 justify-center">
+      <footer className="w-full max-w-lg py-16 flex flex-col items-center gap-8 mt-auto">
+        {/* Social Media Icons */}
+        <div className="flex gap-10 justify-center">
           <a href="https://instagram.com/ajdel.sa" target="_blank" rel="noopener noreferrer" className="text-[#F2BF97] opacity-50 hover:opacity-100 hover:scale-125 transition-all duration-300">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
             </svg>
           </a>
           <a href="https://tiktok.com/@ajdel.sa" target="_blank" rel="noopener noreferrer" className="text-[#F2BF97] opacity-50 hover:opacity-100 hover:scale-125 transition-all duration-300">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/>
             </svg>
           </a>
           <a href="https://snapchat.com/add/ajdel.sa" target="_blank" rel="noopener noreferrer" className="text-[#F2BF97] opacity-50 hover:opacity-100 hover:scale-125 transition-all duration-300">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12.166 3c.796 0 3.495.223 4.769 3.073.426.954.322 2.591.236 3.942l-.014.211c-.006.088-.012.175-.016.256-.01.164.073.252.13.279a.395.395 0 0 0 .167.041c.193 0 .466-.093.813-.211.142-.048.287-.073.43-.073.216 0 .418.054.589.161.246.154.384.397.384.667 0 .509-.545.808-1.063.997-.11.04-.225.076-.339.112-.384.12-.819.256-.96.553-.073.154-.058.341.047.557l.013.027c.083.178 2.035 4.37-.586 5.176-.297.092-.549.133-.78.133-.334 0-.614-.086-.875-.168l-.062-.02c-.259-.083-.507-.161-.834-.161-.122 0-.247.012-.378.038-.474.093-.899.395-1.34.71l-.033.024c-.325.232-.694.495-1.108.653-.248.095-.505.143-.763.143-.256 0-.512-.047-.758-.142-.414-.159-.784-.422-1.109-.654l-.033-.024c-.44-.315-.865-.617-1.339-.71a2.128 2.128 0 0 0-.378-.038c-.327 0-.575.078-.834.162l-.063.019c-.26.082-.54.168-.875.168-.23 0-.482-.041-.78-.133-2.62-.807-.669-4.999-.586-5.176l.013-.027c.105-.216.12-.403.047-.557-.141-.297-.576-.433-.96-.553a6.514 6.514 0 0 1-.339-.112c-.518-.189-1.063-.488-1.063-.997 0-.27.138-.513.384-.667a1.09 1.09 0 0 1 .59-.161c.142 0 .287.025.429.073.347.118.62.211.813.211a.394.394 0 0 0 .167-.041c.057-.027.14-.115.13-.279l-.016-.256-.014-.211c-.086-1.351-.19-2.988.236-3.942C8.505 3.223 11.204 3 12 3h.166z"/>
             </svg>
           </a>
         </div>
         
-        <div className="text-center text-[#ECDAD2] text-sm opacity-60 font-medium tracking-wide">
-          <p>Malqa, Riyadh, Saudi Arabia</p>
-          <div className="flex items-center justify-center gap-5 mt-3">
-            <span>Admin@ajdel.sa</span>
-            <div className="w-1.5 h-1.5 bg-[#ECDAD2] rounded-full opacity-40"></div>
-            <span>00966533484918</span>
-          </div>
+        {/* Unified Footer Text - Corporate Style */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-[#ECDAD2] text-[10px] opacity-50 font-bold uppercase tracking-[0.3em]">
+          <span>MALQA · RIYADH · SAUDI ARABIA</span>
+          <span className="hidden sm:inline text-[#ECDAD2]/30">|</span>
+          <a 
+            href="mailto:Admin@ajdel.sa" 
+            className="hover:opacity-100 hover:text-[#F2BF97] transition-colors"
+          >
+            ADMIN@AJDEL.SA
+          </a>
+          <span className="hidden sm:inline text-[#ECDAD2]/30">|</span>
+          <a 
+            href="tel:+966533484918" 
+            className="hover:opacity-100 hover:text-[#F2BF97] transition-colors"
+          >
+            +966 533 484 918
+          </a>
         </div>
 
-        <div className="mt-6 text-[#ECDAD2] text-[10px] opacity-40 font-bold uppercase tracking-[0.4em]">
-          &copy; MMXXIV AJDEL LUXE PASTRY
+        {/* Copyright */}
+        <div className="text-[#ECDAD2] text-[10px] opacity-40 font-bold uppercase tracking-[0.4em]">
+          © MMXXIV AJDEL LUXE PASTRY
         </div>
 
         {/* Hidden Admin Link */}

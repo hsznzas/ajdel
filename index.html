@@ -31,13 +31,14 @@
       }
       
       :root {
-        --primary-navy: #012842;
+        --primary-navy: #0c2d3d;
+        --brand-gold: #F2BF97;
         --shimmer-duration: 3s; /* Fast continuous shimmer */
       }
       body {
         font-family: 'RawasiArabic', 'Playfair Display', serif;
         overflow-x: hidden;
-        background-color: #012842;
+        background-color: #0c2d3d;
       }
       .font-ar { font-family: 'RawasiArabic', serif; }
       .font-en { font-family: 'Playfair Display', serif; }
@@ -111,6 +112,30 @@
       .btn-ninja { --shimmer-rgb: 0, 198, 191; } /* Teal */
       .btn-salla { --shimmer-rgb: 186, 243, 157; } /* Mint */
       .btn-standard { --shimmer-rgb: 255, 255, 255; } /* White */
+      
+      /* Gold Shimmer for Solid Gold Buttons */
+      .shimmer-gold {
+        position: relative;
+        overflow: hidden;
+      }
+      .shimmer-gold::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -150%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          120deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.4),
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        transform: skewX(-25deg);
+        animation: shimmer var(--shimmer-duration) infinite linear;
+      }
 
       @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }

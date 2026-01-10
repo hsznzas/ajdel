@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMenuItems, incrementViewCount, type FirestoreMenuItem } from '../supabase';
 import { ttqViewContent } from '../../utils/tiktokPixel';
@@ -10,6 +10,9 @@ const AGGREGATOR_INFO: Record<string, { name: string; nameAr: string; logo: stri
   keeta: { name: 'Keeta', nameAr: 'كيتا', logo: '/images/LINK_Keeta.png', color: '#ffd700' },
   ninja: { name: 'Ninja', nameAr: 'نينجا', logo: '/images/LINK_Ninja.png', color: '#00c6bf' },
 };
+
+// Easter egg celebration emojis
+const CELEBRATION_EMOJIS = ['🎉', '✨', '🎊', '💫', '🌟', '🎀', '💝', '🍰', '🧁', '🍩'];
 
 // Fallback Image Component with Peach Placeholder
 const ImageWithFallback: React.FC<{
@@ -71,6 +74,9 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [socialProof] = useState<Record<string, { rating: string; reviews: number }>>({});
+  const [showEmoji, setShowEmoji] = useState<string | null>(null);
+  const [currentEmoji, setCurrentEmoji] = useState<string>('🎉');
+  const emojiTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -93,8 +99,24 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
   const handleCardClick = async (item: FirestoreMenuItem) => {
     if (expandedId === item.id) {
       setExpandedId(null);
+      setShowEmoji(null);
     } else {
       setExpandedId(item.id);
+      
+      // Show celebration emoji easter egg
+      const randomEmoji = CELEBRATION_EMOJIS[Math.floor(Math.random() * CELEBRATION_EMOJIS.length)];
+      setCurrentEmoji(randomEmoji);
+      setShowEmoji(item.id);
+      
+      // Clear any existing timeout
+      if (emojiTimeoutRef.current) {
+        clearTimeout(emojiTimeoutRef.current);
+      }
+      
+      // Hide emoji after 3 seconds
+      emojiTimeoutRef.current = setTimeout(() => {
+        setShowEmoji(null);
+      }, 3000);
       
       // Track view in Firestore
       await incrementViewCount(item.id);
@@ -109,6 +131,15 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
       });
     }
   };
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (emojiTimeoutRef.current) {
+        clearTimeout(emojiTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -167,14 +198,14 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                   {/* Collapsed View */}
                   <motion.div 
                     layout="position"
-                    className="flex items-center gap-4 p-4"
+                    className="flex items-start gap-3 p-4"
                   >
                     {/* Thumbnail */}
                     <motion.div 
                       layout
                       className={`
                         flex-shrink-0 rounded-xl overflow-hidden relative
-                        ${isExpanded ? 'w-0 h-0 opacity-0' : 'w-14 h-14'}
+                        ${isExpanded ? 'w-0 h-0 opacity-0' : 'w-16 h-16'}
                       `}
                       transition={{ duration: 0.2 }}
                     >
@@ -185,30 +216,46 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                       />
                     </motion.div>
 
-                    {/* Name & Ribbon Tag */}
+                    {/* Content: Name, Description, Price & Apps */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-bold text-base truncate">
+                      {/* Name */}
+                      <h3 className="text-white font-bold text-base truncate mb-1">
                         {lang === 'ar' ? item.nameAr : item.nameEn}
                       </h3>
                       
-                      {/* Ribbon Tag */}
-                      {aggInfo && !isExpanded && (
-                        <div className="flex items-center gap-2 mt-1">
-                          <div 
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs"
-                            style={{ backgroundColor: `${aggInfo.color}20` }}
-                          >
-                            <img 
-                              src={aggInfo.logo} 
-                              alt={aggInfo.name} 
-                              className="w-3 h-3 rounded-sm"
-                            />
-                            <span style={{ color: aggInfo.color }} className="font-medium">
-                              {lang === 'ar' 
-                                ? `متوفر على ${aggInfo.nameAr}` 
-                                : `Available on ${aggInfo.name}`}
-                            </span>
-                          </div>
+                      {/* One-line Description (collapsed only) */}
+                      {!isExpanded && (
+                        <p className="text-white/50 text-xs truncate mb-2">
+                          {lang === 'ar' ? item.descriptionAr : item.descriptionEn}
+                        </p>
+                      )}
+                      
+                      {/* Price & Available Apps Row */}
+                      {!isExpanded && (
+                        <div className="flex items-center justify-between gap-2">
+                          {/* Price */}
+                          <span className="text-[#F2BF97] font-bold text-sm">
+                            {item.deliveryPrice} {lang === 'ar' ? 'ريال' : 'SAR'}
+                          </span>
+                          
+                          {/* Available Apps (mini logos) */}
+                          {item.availableOn.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              {item.availableOn.slice(0, 4).map(aggId => {
+                                const info = AGGREGATOR_INFO[aggId];
+                                if (!info) return null;
+                                return (
+                                  <img 
+                                    key={aggId}
+                                    src={info.logo} 
+                                    alt={info.name} 
+                                    className="w-5 h-5 rounded-md"
+                                    title={lang === 'ar' ? info.nameAr : info.name}
+                                  />
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -217,7 +264,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                     <motion.div
                       animate={{ rotate: isExpanded ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"
+                      className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mt-1"
                     >
                       <svg 
                         className="w-4 h-4 text-[#F2BF97]" 
@@ -241,7 +288,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                         className="overflow-hidden"
                       >
                         <div className="px-4 pb-4">
-                          {/* High-res Image */}
+                          {/* High-res Image with Celebration Emoji Easter Egg */}
                           <div className="relative rounded-xl overflow-hidden mb-4 aspect-[4/3]">
                             <ImageWithFallback 
                               src={item.imageUrl}
@@ -249,6 +296,34 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                               name={lang === 'ar' ? item.nameAr : item.nameEn}
                               large
                             />
+                            
+                            {/* Celebration Emoji Easter Egg */}
+                            <AnimatePresence>
+                              {showEmoji === item.id && (
+                                <motion.div
+                                  initial={{ scale: 0, opacity: 0, y: 20 }}
+                                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                                  exit={{ scale: 0, opacity: 0, y: -20 }}
+                                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                >
+                                  <motion.span 
+                                    className="text-6xl drop-shadow-2xl"
+                                    animate={{ 
+                                      rotate: [0, -10, 10, -10, 0],
+                                      scale: [1, 1.2, 1]
+                                    }}
+                                    transition={{ 
+                                      duration: 0.5, 
+                                      repeat: 2,
+                                      repeatDelay: 0.5
+                                    }}
+                                  >
+                                    {currentEmoji}
+                                  </motion.span>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
 
                             {/* Tags Overlay */}
                             <div className="absolute top-3 left-3 flex flex-wrap gap-2">
@@ -258,7 +333,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                                 </span>
                               )}
                               {item.isBestSeller && (
-                                <span className="px-2 py-1 bg-[#F2BF97] text-[#012842] text-xs font-bold rounded-lg shadow-lg">
+                                <span className="px-2 py-1 bg-[#F2BF97] text-[#0c2d3d] text-xs font-bold rounded-lg shadow-lg">
                                   {lang === 'ar' ? 'الأكثر مبيعاً' : 'Best Seller'}
                                 </span>
                               )}
@@ -316,29 +391,34 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                             </div>
                           </div>
 
-                          {/* Aggregator Info */}
+                          {/* Aggregator Info with Delivery Prices */}
                           {item.availableOn.length > 0 && (
                             <div className="mb-4">
-                              <p className="text-white/40 text-xs mb-2">
-                                {lang === 'ar' ? 'متوفر على:' : 'Available on:'}
+                              <p className="text-white/40 text-xs mb-2 uppercase tracking-wider">
+                                {lang === 'ar' ? 'متوفر للتوصيل عبر:' : 'Order via delivery:'}
                               </p>
-                              <div className="flex flex-wrap gap-2">
+                              <div className="grid grid-cols-2 gap-2">
                                 {item.availableOn.map(aggId => {
                                   const info = AGGREGATOR_INFO[aggId];
                                   if (!info) return null;
                                   return (
                                     <div 
                                       key={aggId}
-                                      className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg"
+                                      className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg"
                                     >
                                       <img 
                                         src={info.logo} 
                                         alt={info.name} 
-                                        className="w-5 h-5 rounded"
+                                        className="w-6 h-6 rounded"
                                       />
-                                      <span className="text-white text-sm">
-                                        {lang === 'ar' ? info.nameAr : info.name}
-                                      </span>
+                                      <div className="flex-1 min-w-0">
+                                        <span className="text-white text-sm block truncate">
+                                          {lang === 'ar' ? info.nameAr : info.name}
+                                        </span>
+                                        <span className="text-[#F2BF97] text-xs font-bold">
+                                          {item.deliveryPrice} {lang === 'ar' ? 'ر.س' : 'SAR'}
+                                        </span>
+                                      </div>
                                     </div>
                                   );
                                 })}
