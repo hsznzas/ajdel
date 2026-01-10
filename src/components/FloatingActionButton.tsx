@@ -139,7 +139,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       {hasReachedAggregators ? (
         <>
           {/* Status Message & Countdown Only */}
-          <div className={`text-sm font-medium ${status.isOpen ? 'text-[#012842]' : 'text-white/70'}`}>
+          <div className={`text-sm font-medium ${status.isOpen ? 'text-[#0b253c]' : 'text-white/70'}`}>
             <span>{lang === 'ar' ? status.message.ar : status.message.en}</span>
             <span className="font-mono ml-2 font-bold">{status.countdown}</span>
           </div>
@@ -147,13 +147,13 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       ) : (
         <>
           {/* Status Message & Countdown */}
-          <div className={`text-xs font-medium ${status.isOpen ? 'text-[#012842]/70' : 'text-white/60'}`}>
+          <div className={`text-xs font-medium ${status.isOpen ? 'text-[#0b253c]/70' : 'text-white/60'}`}>
             <span>{lang === 'ar' ? status.message.ar : status.message.en}</span>
             <span className="font-mono ml-1 font-bold">{status.countdown}</span>
           </div>
 
           {/* Main Text - Bilingual */}
-          <div className={`flex items-center gap-3 ${status.isOpen ? 'text-[#012842]' : 'text-white/40'}`}>
+          <div className={`flex items-center gap-3 ${status.isOpen ? 'text-[#0b253c]' : 'text-white/40'}`}>
             <span className="font-bold text-base">Order Now</span>
             <span className="text-lg opacity-30">|</span>
             <span className="font-bold text-base">اطلب الآن</span>
@@ -163,7 +163,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           <motion.div
             animate={status.isOpen ? { y: [0, 4, 0] } : {}}
             transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-            className={status.isOpen ? 'text-[#012842]' : 'text-white/30'}
+            className={status.isOpen ? 'text-[#0b253c]' : 'text-white/30'}
           >
             <svg 
               className="w-5 h-5" 

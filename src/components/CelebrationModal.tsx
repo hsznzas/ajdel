@@ -47,7 +47,7 @@ const CelebrationModal: React.FC<CelebrationModalProps> = ({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-gradient-to-b from-[#0f3545] to-[#0c2d3d] border border-white/20 rounded-3xl shadow-2xl"
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-gradient-to-b from-[#1f405f] to-[#153450] border border-white/20 rounded-3xl shadow-2xl"
           >
             {/* Celebration GIF Header */}
             <div className="relative flex justify-center pt-6 pb-2">
@@ -102,7 +102,7 @@ const CelebrationModal: React.FC<CelebrationModalProps> = ({
                     </span>
                   )}
                   {item.isBestSeller && (
-                    <span className="px-3 py-1 bg-[#F2BF97] text-[#012842] text-sm font-bold rounded-full shadow-lg">
+                    <span className="px-3 py-1 bg-[#F2BF97] text-[#0b253c] text-sm font-bold rounded-full shadow-lg">
                       {lang === 'ar' ? '⭐ الأكثر مبيعاً' : '⭐ Best Seller'}
                     </span>
                   )}
@@ -110,8 +110,8 @@ const CelebrationModal: React.FC<CelebrationModalProps> = ({
 
                 {/* Price Badge */}
                 <div className="absolute bottom-4 right-4 px-4 py-2 bg-white/90 rounded-xl shadow-lg">
-                  <span className="text-[#012842] font-bold text-2xl">{item.deliveryPrice}</span>
-                  <span className="text-[#012842]/60 text-sm ml-1">
+                  <span className="text-[#0b253c] font-bold text-2xl">{item.deliveryPrice}</span>
+                  <span className="text-[#0b253c]/60 text-sm ml-1">
                     {lang === 'ar' ? 'ريال' : 'SAR'}
                   </span>
                 </div>
@@ -187,7 +187,7 @@ const CelebrationModal: React.FC<CelebrationModalProps> = ({
             {/* Decorative Ribbon */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <div className="w-20 h-6 bg-[#F2BF97] rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-[#012842] text-xs font-bold">🎀 AJDEL</span>
+                <span className="text-[#0b253c] text-xs font-bold">🎀 AJDEL</span>
               </div>
             </div>
           </motion.div>

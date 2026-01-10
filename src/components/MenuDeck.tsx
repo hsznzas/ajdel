@@ -338,7 +338,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                                 </span>
                               )}
                               {item.isBestSeller && (
-                                <span className="px-2 py-1 bg-[#F2BF97] text-[#0c2d3d] text-xs font-bold rounded-lg shadow-lg">
+                                <span className="px-2 py-1 bg-[#F2BF97] text-[#0b253c] text-xs font-bold rounded-lg shadow-lg">
                                   {lang === 'ar' ? 'الأكثر مبيعاً' : 'Best Seller'}
                                 </span>
                               )}
@@ -437,7 +437,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                               e.stopPropagation();
                               onViewDetails(item);
                             }}
-                            className="w-full py-3 bg-[#F2BF97] text-[#012842] font-bold rounded-xl hover:bg-[#ECDAD2] active:scale-[0.98] transition-all shadow-lg"
+                            className="w-full py-3 bg-[#F2BF97] text-[#0b253c] font-bold rounded-xl hover:bg-[#ECDAD2] active:scale-[0.98] transition-all shadow-lg"
                           >
                             {lang === 'ar' ? 'عرض التفاصيل' : 'View Specs'}
                           </button>

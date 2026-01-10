@@ -165,9 +165,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#023550] via-[#012842] to-[#011e35]">
+    <div className="min-h-screen bg-gradient-to-b from-[#1f405f] via-[#0b253c] to-[#07192d]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#012842]/80 backdrop-blur-xl border-b border-white/10">
+      <header className="sticky top-0 z-50 bg-[#0b253c]/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img 
@@ -213,7 +213,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
               }}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 activeTab === tab.id
-                  ? 'bg-[#F2BF97] text-[#012842]'
+                  ? 'bg-[#F2BF97] text-[#0b253c]'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
               }`}
             >
@@ -248,7 +248,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                       setActiveTab('add');
                       setEditingItem(createNewItem());
                     }}
-                    className="px-6 py-3 bg-[#F2BF97] text-[#012842] font-bold rounded-xl"
+                    className="px-6 py-3 bg-[#F2BF97] text-[#0b253c] font-bold rounded-xl"
                   >
                     Add Your First Item
                   </button>
@@ -469,7 +469,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#012842] border border-white/10 rounded-2xl p-6 max-w-sm w-full"
+              className="bg-[#0b253c] border border-white/10 rounded-2xl p-6 max-w-sm w-full"
             >
               {/* Warning Icon */}
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
@@ -797,7 +797,7 @@ const ItemEditor: React.FC<ItemEditorProps> = ({
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#F2BF97]/50"
               >
                 {CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id} className="bg-[#012842]">
+                  <option key={cat.id} value={cat.id} className="bg-[#0b253c]">
                     {cat.label}
                   </option>
                 ))}
@@ -836,7 +836,7 @@ const ItemEditor: React.FC<ItemEditorProps> = ({
             <button
               onClick={() => onSave(item)}
               disabled={saveStatus === 'saving' || !item.nameEn}
-              className="flex-1 py-3 bg-[#F2BF97] text-[#012842] font-bold rounded-xl hover:bg-[#ECDAD2] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 bg-[#F2BF97] text-[#0b253c] font-bold rounded-xl hover:bg-[#ECDAD2] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saveStatus === 'saving' ? 'Saving...' : 'Save Item'}
             </button>

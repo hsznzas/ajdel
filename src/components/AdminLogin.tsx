@@ -28,7 +28,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onAuthenticated }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#023550] via-[#012842] to-[#011e35] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#1f405f] via-[#0b253c] to-[#07192d] flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -88,7 +88,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onAuthenticated }) => {
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#F2BF97] text-[#012842] font-bold rounded-xl hover:bg-[#ECDAD2] active:scale-[0.98] transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="w-full py-3 bg-[#F2BF97] text-[#0b253c] font-bold rounded-xl hover:bg-[#ECDAD2] active:scale-[0.98] transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               Access Dashboard
             </button>

@@ -182,7 +182,7 @@ const App: React.FC = () => {
       <div className="w-full max-w-lg flex justify-end mb-10">
         <button 
           onClick={toggleLang}
-          className="bg-white/30 backdrop-blur-md border border-white/40 px-6 py-2 rounded-full text-[#012842] font-bold shadow-sm active:scale-95 transition-all hover:bg-white/50"
+          className="bg-white/30 backdrop-blur-md border border-white/40 px-6 py-2 rounded-full text-[#0b253c] font-bold shadow-sm active:scale-95 transition-all hover:bg-white/50"
         >
           {lang === 'ar' ? 'EN' : 'عربي'}
         </button>
@@ -202,7 +202,7 @@ const App: React.FC = () => {
           <h1 className="text-[#F2BF97] text-3xl font-bold opacity-90 tracking-tight">
             {lang === 'ar' ? 'أجدل' : 'AJDEL'}
           </h1>
-          <p className="text-[#012842] text-sm opacity-60 mt-2 uppercase tracking-[0.3em]">
+          <p className="text-[#0b253c] text-sm opacity-60 mt-2 uppercase tracking-[0.3em]">
             {lang === 'ar' ? 'حلويات فاخرة' : 'Premium Pastries'}
           </p>
         </div>
@@ -227,14 +227,14 @@ const App: React.FC = () => {
                   {/* Loading Progress Bar */}
                   <div className="w-full h-1.5 sm:h-2 bg-white/30 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-[#012842] rounded-full"
+                      className="h-full bg-[#0b253c] rounded-full"
                       style={{
                         animation: 'loadingProgress 2s linear forwards'
                       }}
                     />
                   </div>
                   {/* Cancel hint for mobile */}
-                  <p className="text-[#012842]/50 text-xs sm:text-sm">
+                  <p className="text-[#0b253c]/50 text-xs sm:text-sm">
                     {lang === 'ar' ? 'اضغط في الخارج للإلغاء' : 'Tap outside to cancel'}
                   </p>
                 </div>
@@ -272,7 +272,7 @@ const App: React.FC = () => {
                       transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4
                       ${disabled && isDeliveryApp
                         ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed opacity-50'
-                        : 'shimmer-gold bg-[#F2BF97] text-[#0c2d3d] hover:-translate-y-1 active:translate-y-0.5 active:scale-[0.98]'
+                        : 'shimmer-gold bg-[#F2BF97] text-[#0b253c] hover:-translate-y-1 active:translate-y-0.5 active:scale-[0.98]'
                       }
                     `}
                   >
@@ -315,7 +315,7 @@ const App: React.FC = () => {
           <div className="w-full animate-slideUp">
              <button 
               onClick={() => setView('home')}
-              className="mb-10 flex items-center gap-4 text-[#012842] opacity-60 hover:opacity-100 font-bold transition-all group"
+              className="mb-10 flex items-center gap-4 text-[#0b253c] opacity-60 hover:opacity-100 font-bold transition-all group"
             >
               <div className={`p-2.5 bg-white/20 rounded-full backdrop-blur-md group-hover:bg-white/40 transition-all ${lang === 'ar' ? 'rotate-180' : ''}`}>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,19 +328,19 @@ const App: React.FC = () => {
             <div className="bg-white/10 backdrop-blur-3xl border border-white/30 rounded-[3rem] p-10 shadow-2xl overflow-hidden mb-16">
               <div className="flex justify-between items-end mb-12 border-b border-white/20 pb-8">
                 <div>
-                  <h2 className="text-[#012842] text-3xl font-bold">
+                  <h2 className="text-[#0b253c] text-3xl font-bold">
                     {lang === 'ar' ? 'قائمة الطعام' : 'The Menu'}
                   </h2>
-                  <p className="text-[#012842] text-sm opacity-50 uppercase tracking-widest mt-2">
+                  <p className="text-[#0b253c] text-sm opacity-50 uppercase tracking-widest mt-2">
                     {lang === 'ar' ? 'مختاراتنا اليومية' : 'Daily Selection'}
                   </p>
                 </div>
               </div>
               <ul className="space-y-8">
                 {MENU_DATA.map((item, idx) => (
-                  <li key={idx} className="flex justify-between items-center gap-6 text-[#012842] group">
+                  <li key={idx} className="flex justify-between items-center gap-6 text-[#0b253c] group">
                     <span className="text-lg font-medium opacity-80 group-hover:opacity-100 transition-opacity">{item.name[lang]}</span>
-                    <div className="flex-1 border-b border-dashed border-[#012842]/10 h-0 translate-y-2 opacity-30" />
+                    <div className="flex-1 border-b border-dashed border-[#0b253c]/10 h-0 translate-y-2 opacity-30" />
                     <span className="font-bold text-xl whitespace-nowrap">
                       {item.price} <span className="text-xs opacity-60 font-medium ml-1.5 uppercase">{UI_STRINGS[lang].currency}</span>
                     </span>
