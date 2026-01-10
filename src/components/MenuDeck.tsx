@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { getMenuItems, incrementViewCount, convertToDirectImageUrl, type FirestoreMenuItem } from '../supabase';
 import { ttqViewContent } from '../../utils/tiktokPixel';
 
@@ -10,9 +11,6 @@ const AGGREGATOR_INFO: Record<string, { name: string; nameAr: string; logo: stri
   keeta: { name: 'Keeta', nameAr: 'كيتا', logo: '/images/LINK_Keeta.png', color: '#ffd700' },
   ninja: { name: 'Ninja', nameAr: 'نينجا', logo: '/images/LINK_Ninja.png', color: '#00c6bf' },
 };
-
-// Easter egg celebration emojis
-const CELEBRATION_EMOJIS = ['🎉', '✨', '🎊', '💫', '🌟', '🎀', '💝', '🍰', '🧁', '🍩'];
 
 // Fallback Image Component with Peach Placeholder
 const ImageWithFallback: React.FC<{
@@ -79,9 +77,9 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [socialProof] = useState<Record<string, { rating: string; reviews: number }>>({});
-  const [showEmoji, setShowEmoji] = useState<string | null>(null);
-  const [currentEmoji, setCurrentEmoji] = useState<string>('🎉');
-  const emojiTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Refs for image containers to fire confetti from
+  const imageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -101,27 +99,70 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
     return socialProof[itemId];
   };
 
+  // Fire stars confetti from the center of an image
+  const fireStarsConfetti = useCallback((itemId: string) => {
+    const imageContainer = imageRefs.current[itemId];
+    if (!imageContainer) return;
+
+    // Get the center position of the image container
+    const rect = imageContainer.getBoundingClientRect();
+    const centerX = (rect.left + rect.width / 2) / window.innerWidth;
+    const centerY = (rect.top + rect.height / 2) / window.innerHeight;
+
+    // Brand gold colors for stars
+    const colors = ['#F2BF97', '#ECDAD2', '#FFE4B5', '#FFD700', '#FFF8DC'];
+
+    // Fire multiple bursts of stars
+    const defaults = {
+      spread: 360,
+      ticks: 60,
+      gravity: 0,
+      decay: 0.96,
+      startVelocity: 20,
+      colors: colors,
+      shapes: ['star'] as confetti.Shape[],
+      scalar: 1.2,
+      origin: { x: centerX, y: centerY }
+    };
+
+    // First burst
+    confetti({
+      ...defaults,
+      particleCount: 30,
+      scalar: 1.2,
+    });
+
+    // Second burst with slight delay
+    setTimeout(() => {
+      confetti({
+        ...defaults,
+        particleCount: 20,
+        scalar: 0.8,
+        startVelocity: 15,
+      });
+    }, 100);
+
+    // Third burst
+    setTimeout(() => {
+      confetti({
+        ...defaults,
+        particleCount: 15,
+        scalar: 1.5,
+        startVelocity: 25,
+      });
+    }, 200);
+  }, []);
+
   const handleCardClick = async (item: FirestoreMenuItem) => {
     if (expandedId === item.id) {
       setExpandedId(null);
-      setShowEmoji(null);
     } else {
       setExpandedId(item.id);
       
-      // Show celebration emoji easter egg
-      const randomEmoji = CELEBRATION_EMOJIS[Math.floor(Math.random() * CELEBRATION_EMOJIS.length)];
-      setCurrentEmoji(randomEmoji);
-      setShowEmoji(item.id);
-      
-      // Clear any existing timeout
-      if (emojiTimeoutRef.current) {
-        clearTimeout(emojiTimeoutRef.current);
-      }
-      
-      // Hide emoji after 3 seconds
-      emojiTimeoutRef.current = setTimeout(() => {
-        setShowEmoji(null);
-      }, 3000);
+      // Fire stars confetti after a small delay to let the image appear
+      setTimeout(() => {
+        fireStarsConfetti(item.id);
+      }, 350);
       
       // Track view in Firestore
       await incrementViewCount(item.id);
@@ -136,15 +177,6 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
       });
     }
   };
-  
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (emojiTimeoutRef.current) {
-        clearTimeout(emojiTimeoutRef.current);
-      }
-    };
-  }, []);
 
   if (loading) {
     return (
@@ -293,42 +325,17 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                         className="overflow-hidden"
                       >
                         <div className="px-4 pb-4">
-                          {/* High-res Image with Celebration Emoji Easter Egg */}
-                          <div className="relative rounded-xl overflow-hidden mb-4 aspect-[4/3]">
+                          {/* High-res Image with Confetti Stars Animation */}
+                          <div 
+                            ref={(el) => { imageRefs.current[item.id] = el; }}
+                            className="relative rounded-xl overflow-hidden mb-4 aspect-[4/3]"
+                          >
                             <ImageWithFallback 
                               src={item.imageUrl}
                               alt={lang === 'ar' ? item.nameAr : item.nameEn}
                               name={lang === 'ar' ? item.nameAr : item.nameEn}
                               large
                             />
-                            
-                            {/* Celebration Emoji Easter Egg */}
-                            <AnimatePresence>
-                              {showEmoji === item.id && (
-                                <motion.div
-                                  initial={{ scale: 0, opacity: 0, y: 20 }}
-                                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                                  exit={{ scale: 0, opacity: 0, y: -20 }}
-                                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                                >
-                                  <motion.span 
-                                    className="text-6xl drop-shadow-2xl"
-                                    animate={{ 
-                                      rotate: [0, -10, 10, -10, 0],
-                                      scale: [1, 1.2, 1]
-                                    }}
-                                    transition={{ 
-                                      duration: 0.5, 
-                                      repeat: 2,
-                                      repeatDelay: 0.5
-                                    }}
-                                  >
-                                    {currentEmoji}
-                                  </motion.span>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
 
                             {/* Tags Overlay */}
                             <div className="absolute top-3 left-3 flex flex-wrap gap-2">
