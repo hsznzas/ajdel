@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getMenuItems, incrementViewCount, type FirestoreMenuItem } from '../firebase';
+import { getMenuItems, incrementViewCount, type FirestoreMenuItem } from '../supabase';
 import { ttqViewContent } from '../../utils/tiktokPixel';
 
 // Aggregator data

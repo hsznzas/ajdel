@@ -4,9 +4,9 @@ import {
   getMenuItems, 
   saveMenuItem, 
   updateMenuItem, 
-  // uploadMenuImage - DISABLED: Firebase Storage billing blocker
+  uploadMenuImage,
   type FirestoreMenuItem 
-} from '../firebase';
+} from '../supabase';
 import type { AggregatorId, MenuCategory } from '../../types';
 
 // Aggregator info
@@ -35,6 +35,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('items');
   const [editingItem, setEditingItem] = useState<FirestoreMenuItem | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Fetch menu items
@@ -48,6 +49,39 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
+
+  // Handle image upload via drag and drop - NOW USING SUPABASE STORAGE!
+  const handleImageUpload = async (file: File, itemId: string) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const imageUrl = await uploadMenuImage(file, itemId);
+      
+      // Update the editing item with the new image URL
+      if (editingItem?.id === itemId) {
+        setEditingItem(prev => prev ? { ...prev, imageUrl } : null);
+      }
+      
+      // If item already exists in database, update it
+      const existingItem = menuItems.find(item => item.id === itemId);
+      if (existingItem) {
+        await updateMenuItem(itemId, { imageUrl });
+        setMenuItems(prev => 
+          prev.map(item => 
+            item.id === itemId ? { ...item, imageUrl } : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Failed to upload image. Please try again.');
+    }
+    setUploading(false);
+  };
 
   // Handle save item
   const handleSaveItem = async (item: FirestoreMenuItem) => {
@@ -81,7 +115,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
 
   // Create new item template
   const createNewItem = (): FirestoreMenuItem => ({
-    id: `item_${Date.now()}`,
+    id: crypto.randomUUID(),
     nameAr: '',
     nameEn: '',
     descriptionAr: '',
@@ -114,7 +148,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
             />
             <div>
               <h1 className="text-[#F2BF97] font-bold text-lg">AJDEL Admin</h1>
-              <p className="text-white/40 text-xs">Menu Management</p>
+              <p className="text-white/40 text-xs">Menu Management • Supabase</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -207,7 +241,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none';
-                              (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="w-full h-full flex items-center justify-center text-[#F2BF97] text-xs font-bold px-1 text-center">${item.nameEn.slice(0,15)}</div>`;
                             }}
                           />
                         ) : (
@@ -283,6 +316,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                 item={editingItem}
                 onChange={setEditingItem}
                 onSave={handleSaveItem}
+                onImageUpload={handleImageUpload}
+                uploading={uploading}
                 saveStatus={saveStatus}
                 onCancel={() => {
                   setEditingItem(null);
@@ -377,11 +412,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   );
 };
 
-// Item Editor Component - UPDATED: Using URL input instead of file upload
+// Item Editor Component - WITH DRAG & DROP IMAGE UPLOAD (SUPABASE STORAGE)
 interface ItemEditorProps {
   item: FirestoreMenuItem;
   onChange: (item: FirestoreMenuItem) => void;
   onSave: (item: FirestoreMenuItem) => void;
+  onImageUpload: (file: File, itemId: string) => void;
+  uploading: boolean;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   onCancel: () => void;
 }
@@ -390,10 +427,29 @@ const ItemEditor: React.FC<ItemEditorProps> = ({
   item,
   onChange,
   onSave,
+  onImageUpload,
+  uploading,
   saveStatus,
   onCancel,
 }) => {
+  const [dragOver, setDragOver] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      onImageUpload(file, item.id);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onImageUpload(file, item.id);
+    }
+  };
 
   const updateField = <K extends keyof FirestoreMenuItem>(
     field: K,
@@ -427,49 +483,82 @@ const ItemEditor: React.FC<ItemEditorProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Image Preview & URL Input */}
+        {/* Left Column - Image Upload */}
         <div>
-          {/* Image Preview */}
-          <div className="relative aspect-square rounded-2xl border-2 border-dashed border-white/20 bg-white/5 overflow-hidden mb-4">
+          {/* Drag & Drop Image Zone - SUPABASE STORAGE */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            className={`relative aspect-square rounded-2xl border-2 border-dashed transition-all overflow-hidden ${
+              dragOver 
+                ? 'border-[#F2BF97] bg-[#F2BF97]/10' 
+                : 'border-white/20 bg-white/5'
+            }`}
+          >
             {item.imageUrl && !imageError ? (
-              <img 
-                src={item.imageUrl} 
-                alt={item.nameEn} 
-                className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
-              />
+              <>
+                <img 
+                  src={item.imageUrl} 
+                  alt={item.nameEn} 
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <label className="cursor-pointer px-4 py-2 bg-white/20 rounded-lg text-white text-sm hover:bg-white/30 transition-colors">
+                    Change Image
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileSelect}
+                      className="hidden" 
+                    />
+                  </label>
+                </div>
+              </>
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-[#F2BF97]/10">
-                <span className="text-6xl mb-4">🍰</span>
-                <span className="text-white/40 text-sm">
-                  {imageError ? 'Image failed to load' : 'No image set'}
-                </span>
-              </div>
+              <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
+                {uploading ? (
+                  <>
+                    <div className="w-10 h-10 border-3 border-[#F2BF97] border-t-transparent rounded-full animate-spin mb-3" />
+                    <span className="text-[#F2BF97] text-sm font-medium">Uploading to Supabase...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-14 h-14 text-white/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-white/60 text-sm mb-1 font-medium">Drag & drop image here</span>
+                    <span className="text-white/30 text-xs">or click to browse</span>
+                    <span className="text-[#F2BF97]/60 text-xs mt-2">📦 Powered by Supabase Storage</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileSelect}
+                      className="hidden" 
+                    />
+                  </>
+                )}
+              </label>
             )}
           </div>
 
-          {/* Image URL Input - TEMPORARY REPLACEMENT FOR STORAGE UPLOAD */}
-          <div className="mb-6">
-            <label className="block text-white/60 text-sm mb-2">
-              🔗 Image Link (URL)
-              <span className="text-white/30 text-xs ml-2">
-                (Imgur, Google Drive, etc.)
-              </span>
+          {/* OR: Manual URL Input */}
+          <div className="mt-4">
+            <label className="block text-white/40 text-xs mb-2">
+              Or paste an external image URL:
             </label>
             <input
               type="url"
               value={item.imageUrl}
               onChange={(e) => updateField('imageUrl', e.target.value)}
-              placeholder="https://i.imgur.com/example.jpg"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-[#F2BF97]/50"
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none focus:border-[#F2BF97]/50"
             />
-            <p className="text-white/30 text-xs mt-2">
-              💡 Tip: Use Imgur or direct Google Drive links for free hosting
-            </p>
           </div>
 
           {/* Tags & Availability */}
-          <div className="space-y-4">
+          <div className="mt-6 space-y-4">
             <h3 className="text-white/60 text-sm font-medium">Tags & Status</h3>
             <div className="grid grid-cols-2 gap-3">
               {[

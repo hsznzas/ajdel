@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Language, View } from './types';
-import type { FirestoreMenuItem } from './src/firebase';
+import type { FirestoreMenuItem } from './src/supabase';
 import Background from './components/Background';
 import MenuDeck from './src/components/MenuDeck';
 import CelebrationModal from './src/components/CelebrationModal';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { FirestoreMenuItem } from '../firebase';
+import type { FirestoreMenuItem } from '../supabase';
 
 // GIFs for celebration
 const CELEBRATION_GIFS = [
