@@ -4,7 +4,9 @@ import {
   getMenuItems, 
   saveMenuItem, 
   updateMenuItem, 
+  deleteMenuItem,
   uploadMenuImage,
+  deleteMenuImage,
   type FirestoreMenuItem 
 } from '../supabase';
 import type { AggregatorId, MenuCategory } from '../../types';
@@ -37,6 +39,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [editingItem, setEditingItem] = useState<FirestoreMenuItem | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [itemToDelete, setItemToDelete] = useState<FirestoreMenuItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Fetch menu items
   const fetchItems = useCallback(async () => {
@@ -111,6 +115,30 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
     } catch (error) {
       console.error('Toggle failed:', error);
     }
+  };
+
+  // Handle delete item
+  const handleDeleteItem = async () => {
+    if (!itemToDelete) return;
+    
+    setDeleting(true);
+    try {
+      // Delete image from storage if exists
+      if (itemToDelete.imageUrl && itemToDelete.imageUrl.includes('supabase')) {
+        await deleteMenuImage(itemToDelete.imageUrl);
+      }
+      
+      // Delete item from database
+      await deleteMenuItem(itemToDelete.id);
+      
+      // Update local state
+      setMenuItems(prev => prev.filter(item => item.id !== itemToDelete.id));
+      setItemToDelete(null);
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('Failed to delete item. Please try again.');
+    }
+    setDeleting(false);
   };
 
   // Create new item template
@@ -296,6 +324,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => setItemToDelete(item)}
+                          className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/30 transition-colors"
+                        >
+                          <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
                     </motion.div>
                   ))}
@@ -408,6 +446,87 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {itemToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => !deleting && setItemToDelete(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#012842] border border-white/10 rounded-2xl p-6 max-w-sm w-full"
+            >
+              {/* Warning Icon */}
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+
+              <h3 className="text-white text-lg font-bold text-center mb-2">Delete Item?</h3>
+              <p className="text-white/60 text-sm text-center mb-6">
+                Are you sure you want to delete <span className="text-[#F2BF97] font-medium">"{itemToDelete.nameEn}"</span>? This action cannot be undone.
+              </p>
+
+              {/* Item Preview */}
+              <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#F2BF97]/20 flex-shrink-0">
+                  {itemToDelete.imageUrl ? (
+                    <img src={itemToDelete.imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[#F2BF97] text-xs font-bold">
+                      {itemToDelete.nameEn.slice(0, 3)}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-medium text-sm truncate">{itemToDelete.nameEn}</p>
+                  <p className="text-white/40 text-xs truncate">{itemToDelete.nameAr}</p>
+                </div>
+                <span className="text-[#F2BF97] text-sm font-bold">{itemToDelete.deliveryPrice} SAR</span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setItemToDelete(null)}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-3 bg-white/10 rounded-xl text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteItem}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-3 bg-red-500 rounded-xl text-white font-bold hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
