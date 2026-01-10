@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Language, View } from './types';
+import type { FirestoreMenuItem } from './src/firebase';
 import Background from './components/Background';
+import MenuDeck from './src/components/MenuDeck';
+import CelebrationModal from './src/components/CelebrationModal';
+import FloatingActionButton from './src/components/FloatingActionButton';
 import { LINKS, MENU_DATA, UI_STRINGS } from './constants';
 import { 
   trackHomepageView, 
@@ -31,6 +35,19 @@ const App: React.FC = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingLinkId, setPendingLinkId] = useState<string | null>(null);
   const [currentGif, setCurrentGif] = useState<string>('');
+  
+  // New states for dynamic menu
+  const [selectedItem, setSelectedItem] = useState<FirestoreMenuItem | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // Store open/closed status
+  const [isStoreOpen, setIsStoreOpen] = useState(true);
+  
+  // Track if user has scrolled to aggregators section
+  const [hasReachedAggregators, setHasReachedAggregators] = useState(false);
+  
+  // Ref for aggregators section
+  const aggregatorsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -80,11 +97,34 @@ const App: React.FC = () => {
     });
   }, []);
 
+  // Intersection Observer to detect when user reaches aggregators section
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setHasReachedAggregators(entry.isIntersecting);
+        });
+      },
+      { threshold: 0.3 } // Trigger when 30% of section is visible
+    );
+
+    if (aggregatorsRef.current) {
+      observer.observe(aggregatorsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [view]);
+
   const toggleLang = () => {
     setLang(prev => prev === 'ar' ? 'en' : 'ar');
   };
 
   const handleLinkClick = (isInternal: boolean, linkId: string, linkName?: string) => {
+    // Don't allow clicks when store is closed (except for location)
+    if (!isStoreOpen && linkId !== 'location') {
+      return;
+    }
+    
     if (isInternal) {
       setView('menu');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,6 +150,28 @@ const App: React.FC = () => {
   const handleCancelRedirect = () => {
     setShowCelebration(false);
     setPendingLinkId(null);
+  };
+
+  // Handle view details from MenuDeck
+  const handleViewDetails = (item: FirestoreMenuItem) => {
+    setSelectedItem(item);
+    setShowDetailModal(true);
+  };
+
+  // Scroll to aggregators section
+  const scrollToAggregators = () => {
+    aggregatorsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Handle store open status change from FAB
+  const handleOpenStatusChange = useCallback((isOpen: boolean) => {
+    setIsStoreOpen(isOpen);
+  }, []);
+
+  // Check if a button should be disabled (delivery apps only, not location)
+  const isButtonDisabled = (linkId: string) => {
+    if (linkId === 'location') return false; // Location always enabled
+    return !isStoreOpen || showCelebration;
   };
 
   return (
@@ -178,35 +240,75 @@ const App: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Dynamic Menu Deck - ABOVE aggregator buttons */}
+            <MenuDeck 
+              lang={lang} 
+              onViewDetails={handleViewDetails}
+            />
             
-            {/* Buttons - stay in place */}
-            <div className="space-y-4 sm:space-y-6 animate-fadeIn">
-              {LINKS.map(link => (
-                <button
-                  key={link.id}
-                  onClick={() => handleLinkClick(link.isInternal || false, link.id, link.label.en)}
-                  disabled={showCelebration}
-                  className={`w-full relative shimmer-btn ${link.shimmerClass} border border-white/40 hover:bg-white/20 text-[#F2BF97] py-3 sm:py-4 px-4 sm:px-6 rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98] transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4 disabled:pointer-events-none`}
-                >
-                  {/* App Icon - circular like mobile app icons */}
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-white/50">
-                    <img 
-                      src={link.icon} 
-                      alt={link.label[lang]} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="relative z-10 flex-1 text-center">{link.label[lang]}</span>
-                  <svg 
-                    className={`w-5 h-5 sm:w-6 sm:h-6 opacity-30 group-hover:opacity-100 transition-all duration-500 group-hover:translate-x-1.5 flex-shrink-0 ${lang === 'ar' ? 'rotate-180 group-hover:-translate-x-1.5' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
+            {/* Aggregators Section */}
+            <div ref={aggregatorsRef} id="aggregators" className="space-y-4 sm:space-y-6 animate-fadeIn pb-32">
+              {/* Section Label */}
+              <div className="text-center mb-6">
+                <p className="text-white/40 text-xs uppercase tracking-widest mb-2">
+                  {lang === 'ar' ? 'اطلب عبر' : 'Order via'}
+                </p>
+                <div className="w-12 h-0.5 bg-[#F2BF97]/30 mx-auto" />
+              </div>
+              
+              {LINKS.map(link => {
+                const disabled = isButtonDisabled(link.id);
+                const isDeliveryApp = link.id !== 'location';
+                
+                return (
+                  <button
+                    key={link.id}
+                    onClick={() => handleLinkClick(link.isInternal || false, link.id, link.label.en)}
+                    disabled={disabled}
+                    className={`
+                      w-full relative border py-3 sm:py-4 px-4 sm:px-6 
+                      rounded-2xl sm:rounded-[2rem] text-base sm:text-xl font-bold shadow-lg 
+                      transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4
+                      ${disabled && isDeliveryApp
+                        ? 'bg-gray-500/20 border-gray-500/30 text-gray-400 cursor-not-allowed opacity-50'
+                        : `shimmer-btn ${link.shimmerClass} border-white/40 hover:bg-white/20 text-[#F2BF97] hover:-translate-y-1.5 active:translate-y-0.5 active:scale-[0.98]`
+                      }
+                    `}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              ))}
+                    {/* App Icon */}
+                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-md flex-shrink-0 ${disabled && isDeliveryApp ? 'grayscale opacity-50' : 'bg-white/50'}`}>
+                      <img 
+                        src={link.icon} 
+                        alt={link.label[lang]} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="relative z-10 flex-1 text-center">{link.label[lang]}</span>
+                    <svg 
+                      className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 transition-all duration-500 ${
+                        disabled && isDeliveryApp 
+                          ? 'opacity-20' 
+                          : 'opacity-30 group-hover:opacity-100 group-hover:translate-x-1.5'
+                      } ${lang === 'ar' ? 'rotate-180 group-hover:-translate-x-1.5' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                    
+                    {/* Closed Overlay for delivery apps */}
+                    {disabled && isDeliveryApp && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-2xl sm:rounded-[2rem]">
+                        <span className="text-gray-300 text-sm font-medium">
+                          {lang === 'ar' ? 'مغلق الآن' : 'Closed Now'}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -250,6 +352,22 @@ const App: React.FC = () => {
         )}
       </main>
 
+      {/* Floating Action Button - Centered Capsule */}
+      <FloatingActionButton 
+        onClick={scrollToAggregators}
+        lang={lang}
+        onOpenStatusChange={handleOpenStatusChange}
+        hasReachedAggregators={hasReachedAggregators}
+      />
+
+      {/* Celebration/Details Modal */}
+      <CelebrationModal
+        item={selectedItem}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        lang={lang}
+      />
+
       {/* Footer */}
       <footer className="w-full max-w-lg py-16 flex flex-col items-center gap-10 mt-auto">
         <div className="flex gap-12 justify-center">
@@ -282,6 +400,14 @@ const App: React.FC = () => {
         <div className="mt-6 text-[#ECDAD2] text-[10px] opacity-40 font-bold uppercase tracking-[0.4em]">
           &copy; MMXXIV AJDEL LUXE PASTRY
         </div>
+
+        {/* Hidden Admin Link */}
+        <a 
+          href="/admin-login"
+          className="text-[#ECDAD2]/10 text-[8px] hover:text-[#ECDAD2]/30 transition-colors cursor-pointer select-none"
+        >
+          ·
+        </a>
       </footer>
     </div>
   );
