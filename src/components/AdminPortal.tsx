@@ -23,7 +23,10 @@ import {
   uploadMenuImage,
   deleteMenuImage,
   convertToDirectImageUrl,
-  type FirestoreMenuItem 
+  getAggregatorSettingsFromDB,
+  saveAggregatorSettingsToDB,
+  type FirestoreMenuItem,
+  type AggregatorSettings
 } from '../supabase';
 import type { AggregatorId, MenuCategory } from '../../types';
 
@@ -48,14 +51,7 @@ interface AdminPortalProps {
 
 type TabType = 'items' | 'analytics' | 'add' | 'settings';
 
-// Aggregator visibility settings stored in localStorage
-export interface AggregatorSettings {
-  jahez: boolean;
-  hungerstation: boolean;
-  keeta: boolean;
-  ninja: boolean;
-}
-
+// Default aggregator settings for initial state
 const DEFAULT_AGGREGATOR_SETTINGS: AggregatorSettings = {
   jahez: true,
   hungerstation: true,
@@ -63,27 +59,8 @@ const DEFAULT_AGGREGATOR_SETTINGS: AggregatorSettings = {
   ninja: true,
 };
 
-export function getAggregatorSettings(): AggregatorSettings {
-  try {
-    const stored = localStorage.getItem('aggregatorSettings');
-    if (stored) {
-      return { ...DEFAULT_AGGREGATOR_SETTINGS, ...JSON.parse(stored) };
-    }
-  } catch (e) {
-    console.error('Error reading aggregator settings:', e);
-  }
-  return DEFAULT_AGGREGATOR_SETTINGS;
-}
-
-export function saveAggregatorSettings(settings: AggregatorSettings): void {
-  try {
-    localStorage.setItem('aggregatorSettings', JSON.stringify(settings));
-    // Dispatch a custom event so App.tsx can listen for changes
-    window.dispatchEvent(new CustomEvent('aggregatorSettingsChanged', { detail: settings }));
-  } catch (e) {
-    console.error('Error saving aggregator settings:', e);
-  }
-}
+// Re-export for App.tsx to use
+export { getAggregatorSettingsFromDB, type AggregatorSettings } from '../supabase';
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [menuItems, setMenuItems] = useState<FirestoreMenuItem[]>([]);
@@ -100,8 +77,36 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [dragOverItem, setDragOverItem] = useState<string | null>(null);
   const [savingSort, setSavingSort] = useState(false);
   
-  // Aggregator visibility settings
-  const [aggregatorSettings, setAggregatorSettings] = useState<AggregatorSettings>(getAggregatorSettings);
+  // Aggregator visibility settings (now stored in Supabase)
+  const [aggregatorSettings, setAggregatorSettings] = useState<AggregatorSettings>(DEFAULT_AGGREGATOR_SETTINGS);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+
+  // Fetch aggregator settings from Supabase
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setSettingsLoading(true);
+      const settings = await getAggregatorSettingsFromDB();
+      setAggregatorSettings(settings);
+      setSettingsLoading(false);
+    };
+    fetchSettings();
+  }, []);
+
+  // Save aggregator settings to Supabase
+  const handleSaveAggregatorSetting = async (key: keyof AggregatorSettings, value: boolean) => {
+    const newSettings = { ...aggregatorSettings, [key]: value };
+    setAggregatorSettings(newSettings);
+    
+    try {
+      await saveAggregatorSettingsToDB(newSettings);
+      // Dispatch event for App.tsx to update in real-time
+      window.dispatchEvent(new CustomEvent('aggregatorSettingsChanged', { detail: newSettings }));
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      // Revert on error
+      setAggregatorSettings(aggregatorSettings);
+    }
+  };
 
   // Fetch menu items
   const fetchItems = useCallback(async () => {
@@ -636,11 +641,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                         </div>
                       </div>
                       <button
-                        onClick={() => {
-                          const newSettings = { ...aggregatorSettings, jahez: !aggregatorSettings.jahez };
-                          setAggregatorSettings(newSettings);
-                          saveAggregatorSettings(newSettings);
-                        }}
+                        onClick={() => handleSaveAggregatorSetting('jahez', !aggregatorSettings.jahez)}
                         className={`w-14 h-7 rounded-full transition-all relative ${
                           aggregatorSettings.jahez ? 'bg-green-500' : 'bg-white/20'
                         }`}
@@ -663,11 +664,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                         </div>
                       </div>
                       <button
-                        onClick={() => {
-                          const newSettings = { ...aggregatorSettings, hungerstation: !aggregatorSettings.hungerstation };
-                          setAggregatorSettings(newSettings);
-                          saveAggregatorSettings(newSettings);
-                        }}
+                        onClick={() => handleSaveAggregatorSetting('hungerstation', !aggregatorSettings.hungerstation)}
                         className={`w-14 h-7 rounded-full transition-all relative ${
                           aggregatorSettings.hungerstation ? 'bg-green-500' : 'bg-white/20'
                         }`}
@@ -690,11 +687,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                         </div>
                       </div>
                       <button
-                        onClick={() => {
-                          const newSettings = { ...aggregatorSettings, keeta: !aggregatorSettings.keeta };
-                          setAggregatorSettings(newSettings);
-                          saveAggregatorSettings(newSettings);
-                        }}
+                        onClick={() => handleSaveAggregatorSetting('keeta', !aggregatorSettings.keeta)}
                         className={`w-14 h-7 rounded-full transition-all relative ${
                           aggregatorSettings.keeta ? 'bg-green-500' : 'bg-white/20'
                         }`}
@@ -717,11 +710,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                         </div>
                       </div>
                       <button
-                        onClick={() => {
-                          const newSettings = { ...aggregatorSettings, ninja: !aggregatorSettings.ninja };
-                          setAggregatorSettings(newSettings);
-                          saveAggregatorSettings(newSettings);
-                        }}
+                        onClick={() => handleSaveAggregatorSetting('ninja', !aggregatorSettings.ninja)}
                         className={`w-14 h-7 rounded-full transition-all relative ${
                           aggregatorSettings.ninja ? 'bg-green-500' : 'bg-white/20'
                         }`}

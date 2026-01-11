@@ -405,5 +405,67 @@ export function getLocationClicks(): number {
   }
 }
 
+// ============================================
+// SITE SETTINGS (Stored in Supabase for cross-browser sync)
+// ============================================
+
+export interface AggregatorSettings {
+  jahez: boolean;
+  hungerstation: boolean;
+  keeta: boolean;
+  ninja: boolean;
+}
+
+const DEFAULT_AGGREGATOR_SETTINGS: AggregatorSettings = {
+  jahez: true,
+  hungerstation: true,
+  keeta: true,
+  ninja: true,
+};
+
+/**
+ * Get aggregator visibility settings from Supabase
+ * Falls back to defaults if not found
+ */
+export async function getAggregatorSettingsFromDB(): Promise<AggregatorSettings> {
+  try {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'aggregator_visibility')
+      .single();
+
+    if (error || !data) {
+      // If no settings exist yet, return defaults
+      return DEFAULT_AGGREGATOR_SETTINGS;
+    }
+
+    return { ...DEFAULT_AGGREGATOR_SETTINGS, ...data.value };
+  } catch (error) {
+    console.error('Error fetching aggregator settings:', error);
+    return DEFAULT_AGGREGATOR_SETTINGS;
+  }
+}
+
+/**
+ * Save aggregator visibility settings to Supabase
+ */
+export async function saveAggregatorSettingsToDB(settings: AggregatorSettings): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert({
+        key: 'aggregator_visibility',
+        value: settings,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error saving aggregator settings:', error);
+    throw error;
+  }
+}
+
 export default supabase;
 

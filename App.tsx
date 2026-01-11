@@ -12,8 +12,8 @@ import {
   trackMenuView, 
   trackDeliveryLinkClick
 } from './utils/tiktokPixel';
-import { getAggregatorSettings, type AggregatorSettings } from './src/components/AdminPortal';
-import { incrementLocationClicks, getLocationClicks } from './src/supabase';
+import { getAggregatorSettingsFromDB, type AggregatorSettings } from './src/components/AdminPortal';
+import { incrementLocationClicks } from './src/supabase';
 
 // Array of celebration GIFs to randomly choose from
 const CELEBRATION_GIFS = [
@@ -48,8 +48,13 @@ const App: React.FC = () => {
   // Track if user has scrolled to aggregators section
   const [hasReachedAggregators, setHasReachedAggregators] = useState(false);
   
-  // Aggregator visibility settings from admin
-  const [aggregatorSettings, setAggregatorSettings] = useState<AggregatorSettings>(getAggregatorSettings);
+  // Aggregator visibility settings from admin (fetched from Supabase)
+  const [aggregatorSettings, setAggregatorSettings] = useState<AggregatorSettings>({
+    jahez: true,
+    hungerstation: true,
+    keeta: true,
+    ninja: true,
+  });
   
   // Ref for aggregators section
   const aggregatorsRef = useRef<HTMLDivElement>(null);
@@ -120,23 +125,25 @@ const App: React.FC = () => {
     return () => observer.disconnect();
   }, [view]);
 
-  // Listen for aggregator settings changes from admin portal
+  // Fetch aggregator settings from Supabase on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const settings = await getAggregatorSettingsFromDB();
+      setAggregatorSettings(settings);
+    };
+    fetchSettings();
+  }, []);
+
+  // Listen for aggregator settings changes from admin portal (real-time updates)
   useEffect(() => {
     const handleSettingsChange = (event: CustomEvent<AggregatorSettings>) => {
       setAggregatorSettings(event.detail);
     };
 
     window.addEventListener('aggregatorSettingsChanged', handleSettingsChange as EventListener);
-    
-    // Also refresh on storage changes (for cross-tab sync)
-    const handleStorage = () => {
-      setAggregatorSettings(getAggregatorSettings());
-    };
-    window.addEventListener('storage', handleStorage);
 
     return () => {
       window.removeEventListener('aggregatorSettingsChanged', handleSettingsChange as EventListener);
-      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 
