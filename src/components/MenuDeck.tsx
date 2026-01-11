@@ -270,14 +270,14 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                       {/* Price & Available Apps Row */}
                       {!isExpanded && (
                         <div className="flex items-center justify-between gap-2">
-                          {/* Price */}
+                          {/* Price (dining/base price) */}
                           <span className="text-[#F2BF97] font-bold text-sm">
-                            {item.deliveryPrice} {lang === 'ar' ? 'ريال' : 'SAR'}
+                            {item.basePrice} {lang === 'ar' ? 'ريال' : 'SAR'}
                           </span>
                           
-                          {/* Available Apps (mini logos) */}
+                          {/* Available Apps (mini logos) - faded */}
                           {item.availableOn.length > 0 && (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 opacity-50">
                               {item.availableOn.slice(0, 4).map(aggId => {
                                 const info = AGGREGATOR_INFO[aggId];
                                 if (!info) return null;
@@ -376,7 +376,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                           <div className="flex items-center justify-between mb-4">
                             <div>
                               <span className="text-[#F2BF97] font-bold text-2xl">
-                                {item.deliveryPrice}
+                                {item.basePrice}
                               </span>
                               <span className="text-[#F2BF97]/60 text-sm ml-1">
                                 {lang === 'ar' ? 'ريال' : 'SAR'}
@@ -403,9 +403,9 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                             </div>
                           </div>
 
-                          {/* Aggregator Info with Delivery Prices */}
+                          {/* Aggregator Info with Delivery Prices - faded */}
                           {item.availableOn.length > 0 && (
-                            <div className="mb-4">
+                            <div className="opacity-50">
                               <p className="text-white/40 text-xs mb-2 uppercase tracking-wider">
                                 {lang === 'ar' ? 'متوفر للتوصيل عبر:' : 'Order via delivery:'}
                               </p>
@@ -437,17 +437,6 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                               </div>
                             </div>
                           )}
-
-                          {/* View Details Button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onViewDetails(item);
-                            }}
-                            className="w-full py-3 bg-[#F2BF97] text-[#0b253c] font-bold rounded-xl hover:bg-[#ECDAD2] active:scale-[0.98] transition-all shadow-lg"
-                          >
-                            {lang === 'ar' ? 'عرض التفاصيل' : 'View Specs'}
-                          </button>
                         </div>
                       </motion.div>
                     )}

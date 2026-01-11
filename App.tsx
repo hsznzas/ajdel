@@ -260,6 +260,7 @@ const App: React.FC = () => {
               {LINKS.map(link => {
                 const disabled = isButtonDisabled(link.id);
                 const isDeliveryApp = link.id !== 'location';
+                const isLocation = link.id === 'location';
                 
                 return (
                   <button
@@ -270,6 +271,7 @@ const App: React.FC = () => {
                       w-full relative py-3 sm:py-4 px-4 sm:px-6 
                       rounded-[5px] text-base sm:text-xl font-bold shadow-lg 
                       transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4
+                      ${isLocation ? 'mt-6' : ''}
                       ${disabled && isDeliveryApp
                         ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed opacity-50'
                         : 'shimmer-gold bg-[#F2BF97] text-[#0b253c] hover:-translate-y-1 active:translate-y-0.5 active:scale-[0.98]'

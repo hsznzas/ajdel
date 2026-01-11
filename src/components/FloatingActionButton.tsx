@@ -124,9 +124,9 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       disabled={!status.isOpen}
       className={`
         fixed bottom-6 left-0 right-0 mx-auto w-fit z-50
-        px-8 py-4 rounded-full
-        flex flex-col items-center gap-1
-        shadow-2xl
+        px-5 py-2.5 rounded-full
+        flex flex-col items-center gap-0.5
+        shadow-lg
         transition-colors duration-300
         ${status.isOpen 
           ? 'bg-[#F2BF97] shadow-[#F2BF97]/30 cursor-pointer' 
@@ -161,12 +161,12 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 
           {/* Arrow Icon - Animated bounce */}
           <motion.div
-            animate={status.isOpen ? { y: [0, 4, 0] } : {}}
+            animate={status.isOpen ? { y: [0, 3, 0] } : {}}
             transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
             className={status.isOpen ? 'text-[#0b253c]' : 'text-white/30'}
           >
             <svg 
-              className="w-5 h-5" 
+              className="w-4 h-4" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
