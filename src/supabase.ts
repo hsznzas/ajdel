@@ -33,6 +33,7 @@ export interface MenuItem {
   is_pre_request_only: boolean;
   available_on: string[];
   view_count: number;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +56,7 @@ export interface FirestoreMenuItem {
   isPreRequestOnly: boolean;
   availableOn: string[];
   viewCount: number;
+  sortOrder: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -128,6 +130,7 @@ function toAppFormat(row: MenuItem): FirestoreMenuItem {
     isPreRequestOnly: row.is_pre_request_only,
     availableOn: row.available_on || [],
     viewCount: row.view_count,
+    sortOrder: row.sort_order || 0,
     createdAt: new Date(row.created_at).getTime(),
     updatedAt: new Date(row.updated_at).getTime(),
   };
@@ -152,6 +155,7 @@ function toDbFormat(item: FirestoreMenuItem): Partial<MenuItem> {
     is_pre_request_only: item.isPreRequestOnly,
     available_on: item.availableOn,
     view_count: item.viewCount,
+    sort_order: item.sortOrder,
   };
 }
 
@@ -167,6 +171,7 @@ export async function getMenuItems(): Promise<FirestoreMenuItem[]> {
     const { data, error } = await supabase
       .from('menu_items')
       .select('*')
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -258,6 +263,27 @@ export async function deleteMenuItem(id: string): Promise<void> {
     if (error) throw error;
   } catch (error) {
     console.error('Error deleting menu item:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update sort order for multiple menu items
+ * @param items - Array of { id, sortOrder } objects
+ */
+export async function updateSortOrders(items: { id: string; sortOrder: number }[]): Promise<void> {
+  try {
+    // Update each item's sort_order
+    const updates = items.map(item => 
+      supabase
+        .from('menu_items')
+        .update({ sort_order: item.sortOrder, updated_at: new Date().toISOString() })
+        .eq('id', item.id)
+    );
+    
+    await Promise.all(updates);
+  } catch (error) {
+    console.error('Error updating sort orders:', error);
     throw error;
   }
 }

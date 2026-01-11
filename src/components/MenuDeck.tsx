@@ -235,7 +235,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                   {/* Collapsed View */}
                   <motion.div 
                     layout="position"
-                    className="flex items-start gap-3 p-4"
+                    className="flex items-start gap-3 p-4 relative"
                   >
                     {/* Thumbnail */}
                     <motion.div 
@@ -256,7 +256,7 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                     {/* Content: Name, Description, Price & Apps */}
                     <div className="flex-1 min-w-0">
                       {/* Name */}
-                      <h3 className="text-white font-bold text-base truncate mb-1">
+                      <h3 className="text-white font-bold text-base truncate mb-1 pr-16">
                         {lang === 'ar' ? item.nameAr : item.nameEn}
                       </h3>
                       
@@ -297,21 +297,31 @@ const MenuDeck: React.FC<MenuDeckProps> = ({ lang, onViewDetails }) => {
                       )}
                     </div>
 
-                    {/* Expand Arrow */}
-                    <motion.div
-                      animate={{ rotate: isExpanded ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mt-1"
-                    >
-                      <svg 
-                        className="w-4 h-4 text-[#F2BF97]" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </motion.div>
+                    {/* Tag Badges - iPhone notification style, positioned top-right */}
+                    {!isExpanded && (item.isNew || item.isBestSeller || item.isStoreExclusive || item.isPreRequestOnly) && (
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        {item.isNew && (
+                          <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full shadow-lg shadow-emerald-500/30">
+                            {lang === 'ar' ? 'جديد' : 'NEW'}
+                          </span>
+                        )}
+                        {item.isBestSeller && (
+                          <span className="px-2 py-0.5 bg-[#F2BF97] text-[#0b253c] text-[10px] font-bold rounded-full shadow-lg shadow-[#F2BF97]/30">
+                            {lang === 'ar' ? '⭐' : '⭐'}
+                          </span>
+                        )}
+                        {item.isStoreExclusive && (
+                          <span className="px-2 py-0.5 bg-violet-500 text-white text-[10px] font-bold rounded-full shadow-lg shadow-violet-500/30">
+                            {lang === 'ar' ? 'حصري' : 'EXCL'}
+                          </span>
+                        )}
+                        {item.isPreRequestOnly && (
+                          <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full shadow-lg shadow-amber-500/30">
+                            {lang === 'ar' ? 'طلب' : 'PRE'}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
 
                   {/* Expanded Content */}

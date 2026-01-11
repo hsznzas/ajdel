@@ -5,6 +5,7 @@ import {
   saveMenuItem, 
   updateMenuItem, 
   deleteMenuItem,
+  updateSortOrders,
   uploadMenuImage,
   deleteMenuImage,
   convertToDirectImageUrl,
@@ -42,6 +43,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [itemToDelete, setItemToDelete] = useState<FirestoreMenuItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  // Drag and drop sorting state
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<string | null>(null);
+  const [savingSort, setSavingSort] = useState(false);
 
   // Fetch menu items
   const fetchItems = useCallback(async () => {
@@ -142,6 +148,66 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
     setDeleting(false);
   };
 
+  // Handle drag and drop sorting
+  const handleDragStart = (itemId: string) => {
+    setDraggedItem(itemId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, itemId: string) => {
+    e.preventDefault();
+    if (draggedItem !== itemId) {
+      setDragOverItem(itemId);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverItem(null);
+  };
+
+  const handleDrop = async (targetItemId: string) => {
+    if (!draggedItem || draggedItem === targetItemId) {
+      setDraggedItem(null);
+      setDragOverItem(null);
+      return;
+    }
+
+    // Reorder the items
+    const draggedIndex = menuItems.findIndex(item => item.id === draggedItem);
+    const targetIndex = menuItems.findIndex(item => item.id === targetItemId);
+    
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    const newItems = [...menuItems];
+    const [removed] = newItems.splice(draggedIndex, 1);
+    newItems.splice(targetIndex, 0, removed);
+    
+    // Update sort orders
+    const updatedItems = newItems.map((item, index) => ({
+      ...item,
+      sortOrder: index
+    }));
+    
+    setMenuItems(updatedItems);
+    setDraggedItem(null);
+    setDragOverItem(null);
+
+    // Save to database
+    setSavingSort(true);
+    try {
+      await updateSortOrders(updatedItems.map(item => ({ id: item.id, sortOrder: item.sortOrder })));
+    } catch (error) {
+      console.error('Failed to save sort order:', error);
+      // Refetch on error
+      await fetchItems();
+    }
+    setSavingSort(false);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+
   // Create new item template
   const createNewItem = (): FirestoreMenuItem => ({
     id: crypto.randomUUID(),
@@ -160,6 +226,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
     isPreRequestOnly: false,
     availableOn: ['jahez', 'hungerstation', 'keeta', 'ninja'],
     viewCount: 0,
+    sortOrder: menuItems.length, // Add at the end
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });
@@ -254,15 +321,44 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                   </button>
                 </div>
               ) : (
-                <div className="grid gap-4">
-                  {menuItems.map(item => (
+                <div className="space-y-2">
+                  {/* Sorting indicator */}
+                  {savingSort && (
+                    <div className="flex items-center gap-2 text-white/60 text-sm mb-4">
+                      <div className="w-4 h-4 border-2 border-[#F2BF97] border-t-transparent rounded-full animate-spin" />
+                      Saving order...
+                    </div>
+                  )}
+                  
+                  <p className="text-white/40 text-xs mb-4">💡 Drag items to reorder them</p>
+                  
+                  {menuItems.map((item, index) => (
                     <motion.div
                       key={item.id}
                       layout
-                      className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-4"
+                      draggable
+                      onDragStart={() => handleDragStart(item.id)}
+                      onDragOver={(e) => handleDragOver(e, item.id)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={() => handleDrop(item.id)}
+                      onDragEnd={handleDragEnd}
+                      className={`
+                        bg-white/5 backdrop-blur-xl border rounded-2xl p-4 flex items-center gap-4 cursor-grab active:cursor-grabbing
+                        transition-all duration-200
+                        ${draggedItem === item.id ? 'opacity-50 border-[#F2BF97]' : 'border-white/10'}
+                        ${dragOverItem === item.id ? 'border-[#F2BF97] bg-[#F2BF97]/10' : ''}
+                      `}
                     >
+                      {/* Drag Handle */}
+                      <div className="flex flex-col gap-0.5 text-white/30 flex-shrink-0">
+                        <span className="text-xs font-bold text-white/50">#{index + 1}</span>
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"/>
+                        </svg>
+                      </div>
+                      
                       {/* Image */}
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#F2BF97]/20 flex-shrink-0">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#F2BF97]/20 flex-shrink-0">
                         {item.imageUrl ? (
                           <img 
                             src={convertToDirectImageUrl(item.imageUrl)} 
@@ -282,7 +378,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="text-white font-bold truncate">{item.nameEn}</h3>
                           {item.isNew && (
                             <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">New</span>
@@ -290,10 +386,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                           {item.isBestSeller && (
                             <span className="px-2 py-0.5 bg-[#F2BF97]/20 text-[#F2BF97] text-xs rounded-full">Best Seller</span>
                           )}
+                          {item.isStoreExclusive && (
+                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-full">Exclusive</span>
+                          )}
+                          {item.isPreRequestOnly && (
+                            <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded-full">Pre-order</span>
+                          )}
                         </div>
                         <p className="text-white/40 text-sm truncate">{item.nameAr}</p>
                         <div className="flex items-center gap-4 mt-2">
-                          <span className="text-[#F2BF97] font-bold">{item.deliveryPrice} SAR</span>
+                          <span className="text-[#F2BF97] font-bold">{item.basePrice} SAR</span>
                           <span className="text-white/30 text-sm">Views: {item.viewCount}</span>
                         </div>
                       </div>
