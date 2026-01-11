@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Language, View } from './types';
 import type { FirestoreMenuItem } from './src/supabase';
+import { MapPin } from 'lucide-react';
 import Background from './components/Background';
 import MenuDeck from './src/components/MenuDeck';
 import CelebrationModal from './src/components/CelebrationModal';
@@ -9,9 +10,10 @@ import { LINKS, MENU_DATA, UI_STRINGS } from './constants';
 import { 
   trackHomepageView, 
   trackMenuView, 
-  trackDeliveryLinkClick, 
-  trackLocationClick 
+  trackDeliveryLinkClick
 } from './utils/tiktokPixel';
+import { getAggregatorSettings, type AggregatorSettings } from './src/components/AdminPortal';
+import { incrementLocationClicks, getLocationClicks } from './src/supabase';
 
 // Array of celebration GIFs to randomly choose from
 const CELEBRATION_GIFS = [
@@ -45,6 +47,9 @@ const App: React.FC = () => {
   
   // Track if user has scrolled to aggregators section
   const [hasReachedAggregators, setHasReachedAggregators] = useState(false);
+  
+  // Aggregator visibility settings from admin
+  const [aggregatorSettings, setAggregatorSettings] = useState<AggregatorSettings>(getAggregatorSettings);
   
   // Ref for aggregators section
   const aggregatorsRef = useRef<HTMLDivElement>(null);
@@ -115,13 +120,33 @@ const App: React.FC = () => {
     return () => observer.disconnect();
   }, [view]);
 
+  // Listen for aggregator settings changes from admin portal
+  useEffect(() => {
+    const handleSettingsChange = (event: CustomEvent<AggregatorSettings>) => {
+      setAggregatorSettings(event.detail);
+    };
+
+    window.addEventListener('aggregatorSettingsChanged', handleSettingsChange as EventListener);
+    
+    // Also refresh on storage changes (for cross-tab sync)
+    const handleStorage = () => {
+      setAggregatorSettings(getAggregatorSettings());
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('aggregatorSettingsChanged', handleSettingsChange as EventListener);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
   const toggleLang = () => {
     setLang(prev => prev === 'ar' ? 'en' : 'ar');
   };
 
   const handleLinkClick = (isInternal: boolean, linkId: string, linkName?: string) => {
-    // Don't allow clicks when store is closed (except for location)
-    if (!isStoreOpen && linkId !== 'location') {
+    // Don't allow clicks when store is closed
+    if (!isStoreOpen) {
       return;
     }
     
@@ -129,11 +154,8 @@ const App: React.FC = () => {
       setView('menu');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Track TikTok Pixel event for external link clicks
-      if (linkId === 'location') {
-        trackLocationClick();
-      } else if (linkId && linkName) {
-        // Track delivery platform clicks as InitiateCheckout (high purchase intent)
+      // Track TikTok Pixel event for delivery platform clicks (conversion)
+      if (linkId && linkName) {
         trackDeliveryLinkClick(linkId, linkName);
       }
       
@@ -257,10 +279,17 @@ const App: React.FC = () => {
                 <div className="w-12 h-0.5 bg-[#F2BF97]/30 mx-auto" />
               </div>
               
-              {LINKS.map(link => {
+              {LINKS
+                // Filter links based on aggregator visibility settings AND exclude location (moved to footer)
+                .filter(link => {
+                  // Exclude location - it's now in the footer
+                  if (link.id === 'location') return false;
+                  // Map link.id to settings key
+                  const settingsKey = link.id === 'hunger' ? 'hungerstation' : link.id;
+                  return aggregatorSettings[settingsKey as keyof AggregatorSettings] !== false;
+                })
+                .map(link => {
                 const disabled = isButtonDisabled(link.id);
-                const isDeliveryApp = link.id !== 'location';
-                const isLocation = link.id === 'location';
                 
                 return (
                   <button
@@ -271,15 +300,14 @@ const App: React.FC = () => {
                       w-full relative py-3 sm:py-4 px-4 sm:px-6 
                       rounded-[5px] text-base sm:text-xl font-bold shadow-lg 
                       transition-all duration-500 group flex items-center justify-between gap-3 sm:gap-4
-                      ${isLocation ? 'mt-6' : ''}
-                      ${disabled && isDeliveryApp
+                      ${disabled
                         ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed opacity-50'
                         : 'shimmer-gold bg-[#F2BF97] text-[#0b253c] hover:-translate-y-1 active:translate-y-0.5 active:scale-[0.98]'
                       }
                     `}
                   >
                     {/* App Icon */}
-                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-[4px] overflow-hidden shadow-md flex-shrink-0 ${disabled && isDeliveryApp ? 'grayscale opacity-50' : 'bg-white'}`}>
+                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-[4px] overflow-hidden shadow-md flex-shrink-0 ${disabled ? 'grayscale opacity-50' : 'bg-white'}`}>
                       <img 
                         src={link.icon} 
                         alt={link.label[lang]} 
@@ -289,7 +317,7 @@ const App: React.FC = () => {
                     <span className="relative z-10 flex-1 text-center">{link.label[lang]}</span>
                     <svg 
                       className={`w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0 transition-all duration-500 ${
-                        disabled && isDeliveryApp 
+                        disabled 
                           ? 'opacity-20' 
                           : 'opacity-50 group-hover:opacity-100 group-hover:translate-x-1.5'
                       } ${lang === 'ar' ? 'rotate-180 group-hover:-translate-x-1.5' : ''}`} 
@@ -300,8 +328,8 @@ const App: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                     </svg>
                     
-                    {/* Closed Overlay for delivery apps */}
-                    {disabled && isDeliveryApp && (
+                    {/* Closed Overlay */}
+                    {disabled && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-[5px]">
                         <span className="text-gray-200 text-sm font-medium">
                           {lang === 'ar' ? 'مغلق الآن' : 'Closed Now'}
@@ -373,7 +401,7 @@ const App: React.FC = () => {
       {/* Footer */}
       <footer className="w-full max-w-lg py-16 flex flex-col items-center gap-8 mt-auto">
         {/* Social Media Icons */}
-        <div className="flex gap-10 justify-center">
+        <div className="flex gap-10 justify-center items-center">
           <a href="https://instagram.com/ajdel.sa" target="_blank" rel="noopener noreferrer" className="text-[#F2BF97] opacity-50 hover:opacity-100 hover:scale-125 transition-all duration-300">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -390,6 +418,20 @@ const App: React.FC = () => {
             </svg>
           </a>
         </div>
+        
+        {/* Location Button - No TikTok Pixel, internal tracking only */}
+        <a 
+          href="https://maps.app.goo.gl/8E4gu42aSGkqY8X2A"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => incrementLocationClicks()}
+          className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[#F2BF97] hover:bg-white/20 hover:scale-105 active:scale-95 transition-all duration-300"
+        >
+          <MapPin className="w-5 h-5" />
+          <span className="font-medium text-sm">
+            {lang === 'ar' ? 'الموقع' : 'Location'}
+          </span>
+        </a>
         
         {/* Unified Footer Text - Corporate Style */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-[#ECDAD2] text-[10px] opacity-50 font-bold uppercase tracking-[0.3em]">

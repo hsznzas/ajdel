@@ -1,6 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
+  Cake, 
+  Plus, 
+  BarChart3, 
+  Settings, 
+  Lightbulb,
+  GripVertical,
+  Pencil,
+  Trash2,
+  ImageIcon,
+  Check,
+  X,
+  AlertTriangle
+} from 'lucide-react';
+import { 
   getMenuItems, 
   saveMenuItem, 
   updateMenuItem, 
@@ -32,7 +46,44 @@ interface AdminPortalProps {
   onLogout: () => void;
 }
 
-type TabType = 'items' | 'analytics' | 'add';
+type TabType = 'items' | 'analytics' | 'add' | 'settings';
+
+// Aggregator visibility settings stored in localStorage
+export interface AggregatorSettings {
+  jahez: boolean;
+  hungerstation: boolean;
+  keeta: boolean;
+  ninja: boolean;
+}
+
+const DEFAULT_AGGREGATOR_SETTINGS: AggregatorSettings = {
+  jahez: true,
+  hungerstation: true,
+  keeta: true,
+  ninja: true,
+};
+
+export function getAggregatorSettings(): AggregatorSettings {
+  try {
+    const stored = localStorage.getItem('aggregatorSettings');
+    if (stored) {
+      return { ...DEFAULT_AGGREGATOR_SETTINGS, ...JSON.parse(stored) };
+    }
+  } catch (e) {
+    console.error('Error reading aggregator settings:', e);
+  }
+  return DEFAULT_AGGREGATOR_SETTINGS;
+}
+
+export function saveAggregatorSettings(settings: AggregatorSettings): void {
+  try {
+    localStorage.setItem('aggregatorSettings', JSON.stringify(settings));
+    // Dispatch a custom event so App.tsx can listen for changes
+    window.dispatchEvent(new CustomEvent('aggregatorSettingsChanged', { detail: settings }));
+  } catch (e) {
+    console.error('Error saving aggregator settings:', e);
+  }
+}
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [menuItems, setMenuItems] = useState<FirestoreMenuItem[]>([]);
@@ -48,6 +99,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [dragOverItem, setDragOverItem] = useState<string | null>(null);
   const [savingSort, setSavingSort] = useState(false);
+  
+  // Aggregator visibility settings
+  const [aggregatorSettings, setAggregatorSettings] = useState<AggregatorSettings>(getAggregatorSettings);
 
   // Fetch menu items
   const fetchItems = useCallback(async () => {
@@ -232,7 +286,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1f405f] via-[#0b253c] to-[#07192d]">
+    <div className="min-h-screen bg-gradient-to-b from-[#1f405f] via-[#0b253c] to-[#07192d]" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#0b253c]/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -264,11 +318,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
         </div>
 
         {/* Tabs */}
-        <div className="max-w-6xl mx-auto px-4 flex gap-2 pb-4">
+        <div className="max-w-6xl mx-auto px-4 flex gap-2 pb-4 flex-wrap">
           {[
-            { id: 'items' as TabType, label: 'Menu Items', icon: '🍰' },
-            { id: 'add' as TabType, label: 'Add New', icon: '➕' },
-            { id: 'analytics' as TabType, label: 'Analytics', icon: '📊' },
+            { id: 'items' as TabType, label: 'Menu Items', Icon: Cake },
+            { id: 'add' as TabType, label: 'Add New', Icon: Plus },
+            { id: 'analytics' as TabType, label: 'Analytics', Icon: BarChart3 },
+            { id: 'settings' as TabType, label: 'Settings', Icon: Settings },
           ].map(tab => (
             <button
               key={tab.id}
@@ -278,13 +333,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                   setEditingItem(createNewItem());
                 }
               }}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
                 activeTab === tab.id
                   ? 'bg-[#F2BF97] text-[#0b253c]'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
               }`}
             >
-              <span className="mr-2">{tab.icon}</span>
+              <tab.Icon className="w-4 h-4" />
               {tab.label}
             </button>
           ))}
@@ -330,7 +385,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                     </div>
                   )}
                   
-                  <p className="text-white/40 text-xs mb-4">💡 Drag items to reorder them</p>
+                  <p className="text-white/40 text-xs mb-4 flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5" />
+                    Drag items to reorder them
+                  </p>
                   
                   {menuItems.map((item, index) => (
                     <motion.div
@@ -352,9 +410,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                       {/* Drag Handle */}
                       <div className="flex flex-col gap-0.5 text-white/30 flex-shrink-0">
                         <span className="text-xs font-bold text-white/50">#{index + 1}</span>
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"/>
-                        </svg>
+                        <GripVertical className="w-5 h-5" />
                       </div>
                       
                       {/* Image */}
@@ -424,9 +480,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                           }}
                           className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
                         >
-                          <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
+                          <Pencil className="w-5 h-5 text-white/60" />
                         </button>
 
                         {/* Delete Button */}
@@ -434,9 +488,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                           onClick={() => setItemToDelete(item)}
                           className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/30 transition-colors"
                         >
-                          <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          <Trash2 className="w-5 h-5 text-red-400" />
                         </button>
                       </div>
                     </motion.div>
@@ -553,6 +605,148 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
               </div>
             </motion.div>
           )}
+
+          {/* Settings Tab */}
+          {activeTab === 'settings' && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                <div className="mb-6">
+                  <h2 className="text-white font-bold text-xl">Settings</h2>
+                  <p className="text-white/40 text-sm mt-1">Configure which delivery apps are shown on the home page</p>
+                </div>
+
+                {/* Aggregator Visibility Toggles */}
+                <div className="space-y-4">
+                  <h3 className="text-white/60 text-sm font-medium">Delivery App Buttons Visibility</h3>
+                  <p className="text-white/30 text-xs">Toggle which aggregator buttons are displayed to customers on the home page</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    {/* Jahez */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src="/images/LINK_Jahez.png" alt="Jahez" className="w-10 h-10 rounded-lg" />
+                        <div>
+                          <p className="text-white font-medium">Jahez</p>
+                          <p className="text-white/40 text-xs">جاهز</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newSettings = { ...aggregatorSettings, jahez: !aggregatorSettings.jahez };
+                          setAggregatorSettings(newSettings);
+                          saveAggregatorSettings(newSettings);
+                        }}
+                        className={`w-14 h-7 rounded-full transition-all relative ${
+                          aggregatorSettings.jahez ? 'bg-green-500' : 'bg-white/20'
+                        }`}
+                      >
+                        <div 
+                          className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${
+                            aggregatorSettings.jahez ? 'left-8' : 'left-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* HungerStation */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src="/images/LINK_HungerStation.png" alt="HungerStation" className="w-10 h-10 rounded-lg" />
+                        <div>
+                          <p className="text-white font-medium">HungerStation</p>
+                          <p className="text-white/40 text-xs">هنقرستيشن</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newSettings = { ...aggregatorSettings, hungerstation: !aggregatorSettings.hungerstation };
+                          setAggregatorSettings(newSettings);
+                          saveAggregatorSettings(newSettings);
+                        }}
+                        className={`w-14 h-7 rounded-full transition-all relative ${
+                          aggregatorSettings.hungerstation ? 'bg-green-500' : 'bg-white/20'
+                        }`}
+                      >
+                        <div 
+                          className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${
+                            aggregatorSettings.hungerstation ? 'left-8' : 'left-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Keeta */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src="/images/LINK_Keeta.png" alt="Keeta" className="w-10 h-10 rounded-lg" />
+                        <div>
+                          <p className="text-white font-medium">Keeta</p>
+                          <p className="text-white/40 text-xs">كيتا</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newSettings = { ...aggregatorSettings, keeta: !aggregatorSettings.keeta };
+                          setAggregatorSettings(newSettings);
+                          saveAggregatorSettings(newSettings);
+                        }}
+                        className={`w-14 h-7 rounded-full transition-all relative ${
+                          aggregatorSettings.keeta ? 'bg-green-500' : 'bg-white/20'
+                        }`}
+                      >
+                        <div 
+                          className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${
+                            aggregatorSettings.keeta ? 'left-8' : 'left-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Ninja */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src="/images/LINK_Ninja.png" alt="Ninja" className="w-10 h-10 rounded-lg" />
+                        <div>
+                          <p className="text-white font-medium">Ninja</p>
+                          <p className="text-white/40 text-xs">نينجا</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newSettings = { ...aggregatorSettings, ninja: !aggregatorSettings.ninja };
+                          setAggregatorSettings(newSettings);
+                          saveAggregatorSettings(newSettings);
+                        }}
+                        className={`w-14 h-7 rounded-full transition-all relative ${
+                          aggregatorSettings.ninja ? 'bg-green-500' : 'bg-white/20'
+                        }`}
+                      >
+                        <div 
+                          className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${
+                            aggregatorSettings.ninja ? 'left-8' : 'left-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    </div>
+
+                  {/* Info Box */}
+                  <div className="mt-6 bg-[#F2BF97]/10 border border-[#F2BF97]/30 rounded-xl p-4">
+                    <p className="text-[#F2BF97] text-sm flex items-center gap-2">
+                      <Lightbulb className="w-4 h-4 flex-shrink-0" />
+                      Changes are saved automatically and take effect immediately on the home page.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -575,9 +769,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
             >
               {/* Warning Icon */}
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
-                <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+                <AlertTriangle className="w-8 h-8 text-red-400" />
               </div>
 
               <h3 className="text-white text-lg font-bold text-center mb-2">Delete Item?</h3>
@@ -629,9 +821,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout }) => {
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      <Trash2 className="w-4 h-4" />
                       Delete
                     </>
                   )}
@@ -759,9 +949,7 @@ const ItemEditor: React.FC<ItemEditorProps> = ({
                   </>
                 ) : (
                   <>
-                    <svg className="w-14 h-14 text-white/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <ImageIcon className="w-14 h-14 text-white/30 mb-4" strokeWidth={1.5} />
                     <span className="text-white/60 text-sm mb-1 font-medium">Drag & drop image here</span>
                     <span className="text-white/30 text-xs">or click to browse</span>
                     <span className="text-[#F2BF97]/60 text-xs mt-2">📦 Powered by Supabase Storage</span>

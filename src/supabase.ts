@@ -374,5 +374,36 @@ export async function seedMenuDataIfEmpty(): Promise<boolean> {
   }
 }
 
+// ============================================
+// LOCATION CLICK TRACKING (Internal only, no TikTok Pixel)
+// ============================================
+
+const LOCATION_CLICKS_KEY = 'ajdel_location_clicks';
+
+/**
+ * Increment location button click count (stored in localStorage)
+ */
+export function incrementLocationClicks(): void {
+  try {
+    const current = getLocationClicks();
+    localStorage.setItem(LOCATION_CLICKS_KEY, String(current + 1));
+  } catch (error) {
+    console.error('Error incrementing location clicks:', error);
+  }
+}
+
+/**
+ * Get the total location button click count
+ */
+export function getLocationClicks(): number {
+  try {
+    const stored = localStorage.getItem(LOCATION_CLICKS_KEY);
+    return stored ? parseInt(stored, 10) : 0;
+  } catch (error) {
+    console.error('Error getting location clicks:', error);
+    return 0;
+  }
+}
+
 export default supabase;
 

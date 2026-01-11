@@ -124,8 +124,8 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       disabled={!status.isOpen}
       className={`
         fixed bottom-6 left-0 right-0 mx-auto w-fit z-50
-        px-5 py-2.5 rounded-full
-        flex flex-col items-center gap-0.5
+        px-4 py-2 rounded-full
+        flex items-center gap-2
         shadow-lg
         transition-colors duration-300
         ${status.isOpen 
@@ -137,33 +137,36 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     >
       {/* Compact mode when user has reached aggregators - just show status */}
       {hasReachedAggregators ? (
-        <>
-          {/* Status Message & Countdown Only */}
-          <div className={`text-sm font-medium ${status.isOpen ? 'text-[#0b253c]' : 'text-white/70'}`}>
-            <span>{lang === 'ar' ? status.message.ar : status.message.en}</span>
-            <span className="font-mono ml-2 font-bold">{status.countdown}</span>
-          </div>
-        </>
+        <div className={`text-sm font-medium flex items-center gap-2 ${status.isOpen ? 'text-[#0b253c]' : 'text-white/70'}`}>
+          <span>{lang === 'ar' ? status.message.ar : status.message.en}</span>
+          <span className="font-mono font-bold">{status.countdown}</span>
+        </div>
       ) : (
         <>
-          {/* Status Message & Countdown */}
-          <div className={`text-xs font-medium ${status.isOpen ? 'text-[#0b253c]/70' : 'text-white/60'}`}>
-            <span>{lang === 'ar' ? status.message.ar : status.message.en}</span>
-            <span className="font-mono ml-1 font-bold">{status.countdown}</span>
-          </div>
-
-          {/* Main Text - Bilingual */}
-          <div className={`flex items-center gap-3 ${status.isOpen ? 'text-[#0b253c]' : 'text-white/40'}`}>
-            <span className="font-bold text-base">Order Now</span>
-            <span className="text-lg opacity-30">|</span>
-            <span className="font-bold text-base">اطلب الآن</span>
+          {/* All in one line: Status/Countdown | Order Now | Arrow */}
+          <div className={`flex items-center gap-2 text-sm ${status.isOpen ? 'text-[#0b253c]' : 'text-white/70'}`}>
+            {/* Status & Countdown */}
+            <span className={`font-medium ${status.isOpen ? 'text-[#0b253c]/70' : 'text-white/50'}`}>
+              {lang === 'ar' ? status.message.ar : status.message.en}
+            </span>
+            <span className={`font-mono font-bold ${status.isOpen ? 'text-[#0b253c]' : 'text-white/60'}`}>
+              {status.countdown}
+            </span>
+            
+            {/* Divider */}
+            <span className="opacity-30">|</span>
+            
+            {/* Order Now - Language specific */}
+            <span className="font-bold">
+              {lang === 'ar' ? 'اطلب الآن' : 'Order Now'}
+            </span>
           </div>
 
           {/* Arrow Icon - Animated bounce */}
           <motion.div
-            animate={status.isOpen ? { y: [0, 3, 0] } : {}}
+            animate={status.isOpen ? { y: [0, 2, 0] } : {}}
             transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-            className={status.isOpen ? 'text-[#0b253c]' : 'text-white/30'}
+            className={`flex-shrink-0 ${status.isOpen ? 'text-[#0b253c]' : 'text-white/30'}`}
           >
             <svg 
               className="w-4 h-4" 
